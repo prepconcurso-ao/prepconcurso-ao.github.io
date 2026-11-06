@@ -10,7 +10,12 @@ window.APP_CONFIG = {
 
   NOME_PLATAFORMA: "PrepConcurso AO",
   SUBTITULO: "Preparação para Concursos Públicos",
-  CONTACTO_SUPORTE: "suporte@prepconcurso.ao",
+  CONTACTO_SUPORTE: "massallajamesmsj@gmail.com",
+  TELEFONE_APOIO: "938 791 898",          // telefone e WhatsApp
+  WHATSAPP_INDICATIVO: "244",             // Angola
+  // Banner de publicidade (anúncio da casa, mostrado sempre no fim da rotação)
+  PUBLICIDADE_ATIVA: true,
+  PUBLICIDADE_SEGUNDOS: 6,
   // Quem se regista com telefone recebe um e-mail técnico <números>@DOMINIO_TELEFONE.
   // Se o Supabase recusar este domínio, use um domínio seu (ex.: "tel.minhaempresa.ao").
   DOMINIO_TELEFONE: "tel.prepconcurso.app",

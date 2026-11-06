@@ -76,6 +76,7 @@ Depois disso aparece o menu **Administração**, onde pode tornar outros utiliza
 - **Resultados** — todas as notas, com exportação **CSV** (abre no Excel).
 - **Questões** — criar, editar, desativar, apagar e **importar CSV** (modelo em `modelo_questoes.csv`).
 - **Categorias** — criar, renomear e ativar/desativar categorias (indica as que têm poucas questões).
+- **Publicidade** — anúncios do banner rotativo (flyer em imagem ou só texto, link, período da campanha). O anúncio «Anuncie aqui» com os contactos aparece sempre no fim da rotação. Requer `supabase/03_anuncios.sql`.
 
 > Para permitir testes de 50 questões numa categoria, essa categoria precisa de pelo menos 50 questões ativas. Se tiver menos, o teste usa todas as disponíveis (e o tempo ajusta-se: 1 minuto por questão).
 

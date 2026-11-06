@@ -356,10 +356,79 @@
     mImp.hide(); carregarQuestoes(); carregarCategorias(); carregarResumo();
   };
 
+  // ------------------------------------------------------------------ PUBLICIDADE
+  let anuncios = [], anEditar = null;
+  const mAn = new bootstrap.Modal($("mAnuncio"));
+  async function carregarAnuncios() {
+    const { data, error } = await sb.from("anuncios").select("*").order("ordem").order("id");
+    if (error) { $("lAn").innerHTML = `<tr><td colspan="6" class="text-danger small">${esc(erroMsg(error))} — execute supabase/03_anuncios.sql no Supabase.</td></tr>`; return; }
+    anuncios = data;
+    $("lAn").innerHTML = data.length ? data.map(a => `<tr>
+        <td>${a.imagem_url ? `<img src="${esc(a.imagem_url)}" style="height:48px;max-width:140px;object-fit:cover" class="rounded">` : `<span class="chip chip-mute">só texto</span>`}</td>
+        <td><b>${esc(a.titulo)}</b><div class="small text-muted-2 text-truncate" style="max-width:320px">${esc(a.texto || "")}${a.link ? ` · ${esc(a.link)}` : ""}</div></td>
+        <td class="small">${a.inicio || a.fim ? `${a.inicio ? fmtData(a.inicio, false) : "…"} → ${a.fim ? fmtData(a.fim, false) : "…"}` : "Sempre"}</td>
+        <td>${a.ordem}</td>
+        <td><div class="form-check form-switch"><input class="form-check-input" type="checkbox" data-an-ativo="${a.id}" ${a.ativo ? "checked" : ""}></div></td>
+        <td class="text-end text-nowrap"><button class="btn btn-sm btn-light border" data-an-editar="${a.id}"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-outline-danger" data-an-apagar="${a.id}"><i class="bi bi-trash"></i></button></td>
+      </tr>`).join("") : `<tr><td colspan="6" class="text-muted-2 text-center py-4">Ainda não há anúncios pagos. O banner mostra o anúncio «Anuncie aqui».</td></tr>`;
+  }
+  function abrirAnuncio(a) {
+    anEditar = a ? a.id : null;
+    $("maTitulo").textContent = a ? "Editar anúncio" : "Novo anúncio";
+    $("anTitulo").value = a?.titulo || ""; $("anTexto").value = a?.texto || ""; $("anImagem").value = a?.imagem_url || "";
+    $("anLink").value = a?.link || ""; $("anOrdem").value = a?.ordem ?? 0; $("anAtivo").checked = a ? a.ativo : true;
+    $("anInicio").value = a?.inicio || ""; $("anFim").value = a?.fim || ""; $("anFicheiro").value = "";
+    $("anPrevia").src = a?.imagem_url || ""; $("anPrevia").classList.toggle("d-none", !a?.imagem_url);
+    mAn.show();
+  }
+  $("btnNovoAn").onclick = () => abrirAnuncio(null);
+  $("anFicheiro").onchange = e => {
+    const f = e.target.files[0]; if (!f) return;
+    if (f.size > 3 * 1024 * 1024) { e.target.value = ""; return toast("A imagem tem mais de 3 MB.", "aviso"); }
+    $("anPrevia").src = URL.createObjectURL(f); $("anPrevia").classList.remove("d-none");
+  };
+  $("formAn").onsubmit = async e => {
+    e.preventDefault();
+    const btn = e.target.querySelector("button.btn-navy"); btn.disabled = true;
+    try {
+      let imagem = $("anImagem").value.trim() || null;
+      const f = $("anFicheiro").files[0];
+      if (f) {
+        const caminho = `${Date.now()}-${f.name.toLowerCase().replace(/[^a-z0-9.]+/g, "-")}`;
+        const up = await sb.storage.from("anuncios").upload(caminho, f, { contentType: f.type, upsert: false });
+        if (up.error) throw up.error;
+        imagem = sb.storage.from("anuncios").getPublicUrl(caminho).data.publicUrl;
+      }
+      const reg = { titulo: $("anTitulo").value.trim(), texto: $("anTexto").value.trim() || null, imagem_url: imagem,
+        link: $("anLink").value.trim() || null, ordem: Number($("anOrdem").value) || 0, ativo: $("anAtivo").checked,
+        inicio: $("anInicio").value || null, fim: $("anFim").value || null };
+      const { error } = anEditar ? await sb.from("anuncios").update(reg).eq("id", anEditar) : await sb.from("anuncios").insert(reg);
+      if (error) throw error;
+      mAn.hide(); toast("Anúncio guardado.", "ok"); carregarAnuncios();
+    } catch (err) { falha(err); }
+    finally { btn.disabled = false; }
+  };
+  $("lAn").addEventListener("click", async e => {
+    const ed = e.target.closest("[data-an-editar]");
+    if (ed) return abrirAnuncio(anuncios.find(a => a.id === Number(ed.dataset.anEditar)));
+    const ap = e.target.closest("[data-an-apagar]");
+    if (ap && await App.confirmar("Apagar anúncio", "<p>Apagar este anúncio do banner?</p>", "Apagar", "btn-danger")) {
+      const { error } = await sb.from("anuncios").delete().eq("id", ap.dataset.anApagar);
+      if (error) return falha(error);
+      carregarAnuncios();
+    }
+  });
+  $("lAn").addEventListener("change", async e => {
+    const id = e.target.dataset.anAtivo; if (!id) return;
+    const { error } = await sb.from("anuncios").update({ ativo: e.target.checked }).eq("id", id);
+    if (error) falha(error);
+  });
+
   // ------------------------------------------------------------------ INÍCIO
   async function tudo() {
     await carregarCategorias();
-    await Promise.all([carregarResumo(), carregarPedidos(), carregarCandidatos(), carregarResultados(), carregarQuestoes()]);
+    await Promise.all([carregarResumo(), carregarPedidos(), carregarCandidatos(), carregarResultados(), carregarQuestoes(), carregarAnuncios()]);
   }
   $("btnRecarregar").onclick = tudo;
   tudo();

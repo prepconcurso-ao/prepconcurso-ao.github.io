@@ -188,3 +188,42 @@ h1, h2, h3, h4, .titulo { font-family: var(--font-head); font-weight: 700; lette
   .grafico-barras .barra { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .veredicto, .barra-area > div, .chip { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* =====================================================================
+   Banner de publicidade
+   ===================================================================== */
+.publicidade { position: relative; }
+.pub-etiqueta { font-size: .68rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: .3rem; text-align: right; }
+.publicidade .carousel { border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.publicidade .carousel-indicators { margin-bottom: .4rem; }
+.publicidade .carousel-indicators [data-bs-target] { width: 22px; height: 4px; border-radius: 2px; }
+.publicidade .carousel-control-prev, .publicidade .carousel-control-next { width: 7%; opacity: .6; }
+.pub-link, .pub-link:hover { text-decoration: none; color: inherit; display: block; }
+.pub-flyer { min-height: 210px; display: flex; align-items: center; gap: 1.5rem; padding: 1.6rem 4.5rem 2.2rem; position: relative; overflow: hidden; }
+.pub-casa { background: linear-gradient(115deg, var(--navy) 0%, var(--navy-2) 55%, var(--navy-3) 100%); color: #fff; }
+.pub-casa::before { content: ""; position: absolute; right: -40px; top: -80px; width: 320px; height: 320px; border-radius: 50%; border: 36px solid rgba(24,178,229,.18); }
+.pub-casa::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: linear-gradient(90deg, var(--red) 0 45%, var(--black) 45% 90%, var(--gold) 90% 100%); }
+.pub-casa-2 { background: linear-gradient(115deg, #0b6f96 0%, var(--cyan-2) 50%, var(--cyan) 100%); }
+.pub-casa-2 h3 span { color: var(--gold) !important; }
+.pub-texto { position: relative; z-index: 1; flex: 1; min-width: 0; }
+.pub-kicker { display: inline-block; font-family: var(--font-head); text-transform: uppercase; letter-spacing: .8px; font-size: .82rem; font-weight: 700; color: var(--gold); margin-bottom: .2rem; }
+.pub-flyer h3 { color: #fff; font-size: clamp(1.5rem, 3.4vw, 2.4rem); text-transform: uppercase; line-height: 1.02; margin-bottom: .35rem; }
+.pub-flyer h3 span { color: var(--cyan); }
+.pub-flyer p { color: #d6e7fa; margin-bottom: .9rem; max-width: 640px; }
+.pub-contactos { display: flex; flex-wrap: wrap; gap: .5rem; }
+.pub-btn { display: inline-flex; align-items: center; gap: .4rem; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); color: #fff; border-radius: 30px; padding: .38rem .9rem; font-weight: 600; font-size: .9rem; text-decoration: none; }
+.pub-btn:hover { background: rgba(255,255,255,.22); color: #fff; }
+.pub-btn-wa { background: #25d366; border-color: #25d366; color: #0b2a14; }
+.pub-btn-wa:hover { background: #1fb457; color: #fff; }
+.pub-selo { position: relative; z-index: 1; flex: none; width: 120px; height: 120px; border-radius: 50%; background: var(--gold); color: var(--navy); display: grid; place-items: center; font-size: 3.4rem; transform: rotate(-8deg); box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+.pub-anunciante { background: linear-gradient(115deg, #13213f, var(--navy-2)); color: #fff; }
+.pub-imagem { padding: 0; background: var(--navy); justify-content: center; min-height: 210px; }
+.pub-imagem img { width: 100%; height: 260px; object-fit: contain; display: block; }
+.pub-legenda { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(transparent, rgba(0,0,0,.75)); color: #fff; padding: 1.4rem 1rem .9rem; font-size: .9rem; }
+@media (max-width: 768px) {
+  .pub-flyer { padding: 1.3rem 2.6rem 2.2rem; min-height: 260px; }
+  .pub-selo { display: none; }
+  .pub-imagem img { height: 220px; }
+  .pub-btn { font-size: .82rem; padding: .32rem .75rem; }
+}
+@media print { .publicidade { display: none !important; } }

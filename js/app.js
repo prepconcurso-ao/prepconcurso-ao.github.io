@@ -144,7 +144,8 @@
     el.className = "rodape mt-5";
     el.innerHTML = `<div class="faixa"></div><div class="container py-4 d-flex flex-column flex-md-row justify-content-between gap-2">
       <div><strong class="text-white">${esc(cfg.NOME_PLATAFORMA)}</strong> — plataforma de treino independente para candidatos a concursos públicos.</div>
-      <div>Apoio: <a href="mailto:${esc(cfg.CONTACTO_SUPORTE)}">${esc(cfg.CONTACTO_SUPORTE)}</a></div></div>`;
+      <div>Apoio: <a href="mailto:${esc(cfg.CONTACTO_SUPORTE)}">${esc(cfg.CONTACTO_SUPORTE)}</a>
+        ${cfg.TELEFONE_APOIO ? ` · <a href="https://wa.me/${cfg.WHATSAPP_INDICATIVO || "244"}${cfg.TELEFONE_APOIO.replace(/\D/g, "")}" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> ${esc(cfg.TELEFONE_APOIO)}</a>` : ""}</div></div>`;
   }
 
   function renderAvisoConfig() {

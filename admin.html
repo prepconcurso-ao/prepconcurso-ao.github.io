@@ -25,6 +25,7 @@
       <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tRes">Resultados</button></li>
       <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tQuest">Questões</button></li>
       <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tCat">Categorias</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tPub">Publicidade</button></li>
     </ul>
 
     <div class="tab-content">
@@ -91,6 +92,18 @@
         </div>
       </div>
 
+      <!-- PUBLICIDADE -->
+      <div class="tab-pane fade" id="tPub">
+        <div class="cartao p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div><h4 class="mb-0">Publicidade</h4><div class="small text-muted-2">Anúncios do banner rotativo. O anúncio «Anuncie aqui» aparece sempre no fim.</div></div>
+            <button class="btn btn-navy" id="btnNovoAn"><i class="bi bi-plus-lg"></i> Novo anúncio</button>
+          </div>
+          <div class="table-wrap"><table class="table mb-0"><thead><tr><th>Flyer</th><th>Anúncio</th><th>Período</th><th>Ordem</th><th>Ativo</th><th></th></tr></thead>
+          <tbody id="lAn"></tbody></table></div>
+        </div>
+      </div>
+
       <!-- CATEGORIAS -->
       <div class="tab-pane fade" id="tCat">
         <div class="cartao p-4">
@@ -107,6 +120,26 @@
     </div>
   </main>
   <footer id="rodape"></footer>
+
+  <!-- Modal anúncio -->
+  <div class="modal fade" id="mAnuncio" tabindex="-1"><div class="modal-dialog modal-lg"><form class="modal-content" id="formAn" style="border-radius:16px">
+    <div class="modal-header"><h5 class="modal-title titulo" id="maTitulo">Novo anúncio</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><div class="row g-3">
+      <div class="col-md-8"><label class="form-label">Título / anunciante</label><input class="form-control" id="anTitulo" required maxlength="120"></div>
+      <div class="col-md-4"><label class="form-label">Ordem</label><input class="form-control" id="anOrdem" type="number" value="0"></div>
+      <div class="col-12"><label class="form-label">Texto (opcional)</label><input class="form-control" id="anTexto" maxlength="200"></div>
+      <div class="col-12"><label class="form-label">Flyer (imagem)</label>
+        <input class="form-control mb-2" type="file" id="anFicheiro" accept="image/png,image/jpeg,image/webp,image/gif">
+        <input class="form-control" id="anImagem" placeholder="…ou cole o endereço de uma imagem (https://…)">
+        <div class="form-text">Formato recomendado: horizontal, 1200 × 300 px, até 3 MB. Sem imagem, o anúncio aparece só com o texto.</div>
+        <img id="anPrevia" class="mt-2 rounded d-none" style="max-height:120px;max-width:100%"></div>
+      <div class="col-12"><label class="form-label">Link ao clicar (opcional)</label><input class="form-control" id="anLink" placeholder="https://… ou https://wa.me/244…"></div>
+      <div class="col-md-4"><label class="form-label">Início (opcional)</label><input class="form-control" type="date" id="anInicio"></div>
+      <div class="col-md-4"><label class="form-label">Fim (opcional)</label><input class="form-control" type="date" id="anFim"></div>
+      <div class="col-md-4 d-flex align-items-end"><div class="form-check"><input class="form-check-input" type="checkbox" id="anAtivo" checked><label class="form-check-label" for="anAtivo">Ativo</label></div></div>
+    </div></div>
+    <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-navy">Guardar</button></div>
+  </form></div></div>
 
   <!-- Modal questão -->
   <div class="modal fade" id="mQuestao" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><form class="modal-content" id="formQ" style="border-radius:16px">
