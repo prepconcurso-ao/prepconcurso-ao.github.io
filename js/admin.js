@@ -78,7 +78,7 @@
         <td>${resumoEtapa(c.estado.psico, "psico")}</td>
         <td>${resumoEtapa(c.estado.conhecimento, "conhecimento")}</td>
         <td class="text-end"><div class="dropdown">
-          <button class="btn btn-sm btn-light border dropdown-toggle" data-bs-toggle="dropdown">Ações</button>
+          <button class="btn btn-sm btn-light border dropdown-toggle" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">Ações</button>
           <ul class="dropdown-menu dropdown-menu-end">
             <li><a class="dropdown-item" href="#" data-acao="conceder" data-tipo="psico" data-id="${c.id}"><i class="bi bi-arrow-repeat me-1"></i> Conceder nova tentativa — Psicotécnico</a></li>
             <li><a class="dropdown-item" href="#" data-acao="conceder" data-tipo="conhecimento" data-id="${c.id}"><i class="bi bi-arrow-repeat me-1"></i> Conceder nova tentativa — Conhecimentos</a></li>

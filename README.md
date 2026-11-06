@@ -33,6 +33,7 @@ Outros pormenores: o exame é **submetido automaticamente** quando o tempo acaba
 1. Crie uma conta em <https://supabase.com> e um **New project**.
 2. Abra **SQL Editor → New query**, cole o conteúdo de `supabase/01_schema.sql` e clique **Run**.
 3. Numa nova query, cole `supabase/02_seed_questoes.sql` e clique **Run** (carrega 141 questões psicotécnicas e 155 de conhecimentos em 6 categorias).
+   Depois execute `supabase/03_anuncios.sql` (publicidade) e `supabase/04_mais_questoes.sql` (mais 7 categorias, incluindo as áreas do concurso do Centro de Ciência de Luanda, questões comportamentais e de cultura geral; ficam 171 psicotécnicas e 37 a 60 por categoria).
 4. Em **Authentication → Sign In / Providers → Email**:
    - desative **Confirm email** (obrigatório para o cadastro por telefone funcionar; com e-mail de confirmação ativo, só o cadastro por e-mail funcionaria);
    - mantenha **Email** ativo.
