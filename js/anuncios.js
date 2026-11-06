@@ -65,7 +65,7 @@
     }).concat(casa);
 
     const id = "carrosselPub";
-    el.className = "container my-4 publicidade";
+    el.className = "container mt-3 mb-3 publicidade";
     el.setAttribute("aria-label", "Publicidade");
     el.innerHTML = `
       <div class="pub-etiqueta">Publicidade</div>
