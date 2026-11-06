@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Administração — PrepConcurso AO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/estilo.css" rel="stylesheet">
+</head>
+<body>
+  <header id="topo"></header>
+  <main class="container py-4">
+    <div class="d-flex align-items-end justify-content-between flex-wrap gap-2 mb-3">
+      <div><span class="etiqueta">Área reservada</span><h1 class="mb-0 upper">Administração</h1></div>
+      <button class="btn btn-light border" id="btnRecarregar"><i class="bi bi-arrow-clockwise"></i> Atualizar</button>
+    </div>
+
+    <ul class="nav nav-underline admin-tabs mb-4 flex-nowrap overflow-auto" role="tablist">
+      <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tResumo">Resumo</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tPedidos">Pedidos <span class="badge text-bg-danger d-none" id="bPend"></span></button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tCand">Candidatos</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tRes">Resultados</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tQuest">Questões</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tCat">Categorias</button></li>
+    </ul>
+
+    <div class="tab-content">
+      <!-- RESUMO -->
+      <div class="tab-pane fade show active" id="tResumo"><div class="row g-3" id="tiles"></div></div>
+
+      <!-- PEDIDOS -->
+      <div class="tab-pane fade" id="tPedidos">
+        <div class="cartao p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h4 class="mb-0">Pedidos de repetição</h4>
+            <select class="form-select w-auto" id="fPedidos"><option value="pendente">Pendentes</option><option value="">Todos</option></select>
+          </div>
+          <div class="table-wrap"><table class="table mb-0"><thead><tr><th>Data</th><th>Candidato</th><th>Teste</th><th>Motivo</th><th>Estado</th><th></th></tr></thead>
+          <tbody id="lPedidos"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- CANDIDATOS -->
+      <div class="tab-pane fade" id="tCand">
+        <div class="cartao p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h4 class="mb-0">Candidatos</h4>
+            <input class="form-control w-auto" id="fCand" placeholder="Pesquisar nome, código, contacto…">
+          </div>
+          <div class="table-wrap"><table class="table mb-0"><thead><tr><th>Candidato</th><th>Contacto</th><th>Categoria</th><th>Psicotécnico</th><th>Conhecimentos</th><th></th></tr></thead>
+          <tbody id="lCand"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- RESULTADOS -->
+      <div class="tab-pane fade" id="tRes">
+        <div class="cartao p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h4 class="mb-0">Resultados</h4>
+            <div class="d-flex gap-2">
+              <select class="form-select w-auto" id="fRes"><option value="">Todos os testes</option><option value="psico">Psicotécnico</option><option value="conhecimento">Conhecimentos</option></select>
+              <button class="btn btn-outline-navy" id="btnCsv"><i class="bi bi-download"></i> CSV</button>
+            </div>
+          </div>
+          <div class="table-wrap"><table class="table mb-0"><thead><tr><th>Data</th><th>Candidato</th><th>Teste</th><th>Categoria</th><th>Acertos</th><th>Tempo</th><th>Nota</th><th></th></tr></thead>
+          <tbody id="lRes"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- QUESTÕES -->
+      <div class="tab-pane fade" id="tQuest">
+        <div class="cartao p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h4 class="mb-0">Banco de questões <small class="text-muted-2 fs-6" id="qTotal"></small></h4>
+            <div class="d-flex gap-2 flex-wrap">
+              <button class="btn btn-outline-navy" id="btnImportar"><i class="bi bi-upload"></i> Importar CSV</button>
+              <button class="btn btn-navy" id="btnNovaQ"><i class="bi bi-plus-lg"></i> Nova questão</button>
+            </div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-md-3"><select class="form-select" id="fqTipo"><option value="">Todos os tipos</option><option value="psico">Psicotécnico</option><option value="conhecimento">Conhecimentos</option></select></div>
+            <div class="col-md-3"><select class="form-select" id="fqCat"><option value="">Todas as categorias</option></select></div>
+            <div class="col-md-6"><input class="form-control" id="fqTexto" placeholder="Pesquisar enunciado ou área…"></div>
+          </div>
+          <div class="table-wrap"><table class="table mb-0"><thead><tr><th>#</th><th>Enunciado</th><th>Tipo / Área</th><th>Resposta</th><th>Ativa</th><th></th></tr></thead>
+          <tbody id="lQuest"></tbody></table></div>
+          <div class="d-flex justify-content-center mt-3"><button class="btn btn-light border d-none" id="btnMaisQ">Mostrar mais</button></div>
+        </div>
+      </div>
+
+      <!-- CATEGORIAS -->
+      <div class="tab-pane fade" id="tCat">
+        <div class="cartao p-4">
+          <h4 class="mb-3">Categorias</h4>
+          <form class="row g-2 mb-4" id="formCat">
+            <div class="col-md-5"><input class="form-control" id="catNome" placeholder="Nome da nova categoria" required></div>
+            <div class="col-md-5"><input class="form-control" id="catDesc" placeholder="Descrição (opcional)"></div>
+            <div class="col-md-2"><button class="btn btn-navy w-100">Adicionar</button></div>
+          </form>
+          <div class="table-wrap"><table class="table mb-0"><thead><tr><th>Categoria</th><th>Questões ativas</th><th>Candidatos</th><th>Ativa</th><th></th></tr></thead>
+          <tbody id="lCat"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer id="rodape"></footer>
+
+  <!-- Modal questão -->
+  <div class="modal fade" id="mQuestao" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><form class="modal-content" id="formQ" style="border-radius:16px">
+    <div class="modal-header"><h5 class="modal-title titulo" id="mqTitulo">Nova questão</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="row g-3">
+        <div class="col-md-4"><label class="form-label">Tipo</label>
+          <select class="form-select" id="qTipo"><option value="psico">Psicotécnico</option><option value="conhecimento">Conhecimentos</option></select></div>
+        <div class="col-md-4" id="qCatWrap"><label class="form-label">Categoria</label><select class="form-select" id="qCat"></select></div>
+        <div class="col-md-4"><label class="form-label">Área / tema</label><input class="form-control" id="qArea" list="listaAreas" required></div>
+        <div class="col-12"><label class="form-label">Enunciado</label><textarea class="form-control" id="qEnun" rows="3" required></textarea></div>
+        <div class="col-12"><label class="form-label">Opções <span class="text-muted-2 fw-normal">(marque a correta)</span></label><div id="qOpcoes"></div>
+          <button type="button" class="btn btn-sm btn-light border" id="qMaisOp"><i class="bi bi-plus"></i> Opção</button></div>
+        <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" id="qAtivo" checked><label class="form-check-label" for="qAtivo">Questão ativa</label></div></div>
+      </div>
+      <datalist id="listaAreas"></datalist>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-navy">Guardar</button></div>
+  </form></div></div>
+
+  <!-- Modal importar -->
+  <div class="modal fade" id="mImportar" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content" style="border-radius:16px">
+    <div class="modal-header"><h5 class="modal-title titulo">Importar questões (CSV)</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <p class="small">Colunas (separador <code>;</code> ou <code>,</code>, primeira linha com cabeçalho):</p>
+      <pre class="small bg-light p-2 rounded">tipo;area;categoria;enunciado;opcao_a;opcao_b;opcao_c;opcao_d;correta
+psico;Aptidão Numérica;;Quanto é 15% de 200?;20;30;35;40;B
+conhecimento;Redes;Informática;O que faz o DNS?;Resolve nomes;Envia e-mail;Cifra dados;Liga cabos;A</pre>
+      <p class="small text-muted-2">«categoria» fica vazia para o psicotécnico. «correta» é a letra (A–F). Pode usar até 6 opções (opcao_e, opcao_f).</p>
+      <input type="file" class="form-control" id="csvFicheiro" accept=".csv,text/csv">
+      <div id="csvPrevia" class="small mt-3"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-light" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-navy" id="btnConfirmarImport" disabled>Importar</button></div>
+  </div></div></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

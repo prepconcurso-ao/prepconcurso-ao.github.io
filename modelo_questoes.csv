@@ -1,0 +1,5 @@
+tipo;area;categoria;enunciado;opcao_a;opcao_b;opcao_c;opcao_d;correta
+psico;Aptidão Numérica;;Quanto é 15% de 200?;20;30;35;40;B
+psico;Raciocínio Lógico;;Se hoje é segunda-feira, que dia será daqui a 3 dias?;Quarta-feira;Quinta-feira;Sexta-feira;Sábado;B
+conhecimento;Redes;Informática;O que faz o protocolo DNS?;Converte nomes de domínio em endereços IP;Envia e-mails;Encripta ficheiros;Atribui endereços IP;A
+conhecimento;Gestão Pública;Administração Pública;Quem aprova o Orçamento Geral do Estado?;Tribunal de Contas;Assembleia Nacional;Banco Nacional de Angola;Governo Provincial;B

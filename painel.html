@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Painel do candidato — PrepConcurso AO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/estilo.css" rel="stylesheet">
+</head>
+<body>
+  <header id="topo"></header>
+  <main class="container py-4" id="conteudo">
+    <div class="carregar"><div class="spinner-border text-primary"></div></div>
+  </main>
+  <footer id="rodape"></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+  (async () => {
+    const { sb, esc, toast, erroMsg, fmtNota, fmtData, fmtHMS, TIPOS, AREAS_PSICO, cfg } = App;
+    const perfil = await App.exigirSessao();
+    App.renderTopo(perfil, "painel");
+    App.renderRodape();
+    const NOTA_MIN = cfg.NOTA_MINIMA_PSICO || 10;
+    const MIN = cfg.MIN_QUESTOES || 25, MAX = cfg.MAX_QUESTOES || 50;
+
+    async function carregar() {
+      const [est, tent] = await Promise.all([
+        sb.rpc("meu_estado"),
+        sb.from("tentativas").select("id, tipo, n_questoes, nota, acertos, respondidas, tempo_seg, submetido_em, estado")
+          .eq("user_id", perfil.id).eq("estado", "submetido").order("submetido_em", { ascending: false })
+      ]);
+      if (est.error) throw est.error;
+      if (tent.error) throw tent.error;
+      render(est.data, tent.data);
+    }
+
+    function blocoInicio(tipo) {
+      return `
+        <label class="form-label mb-1" for="n_${tipo}">Número de questões: <b id="nv_${tipo}">${MIN}</b></label>
+        <input type="range" class="form-range" min="${MIN}" max="${MAX}" step="1" value="${MIN}" id="n_${tipo}">
+        <div class="d-flex justify-content-between small text-muted-2 mb-3"><span>${MIN}</span>
+          <span><i class="bi bi-stopwatch"></i> Duração: <b id="dv_${tipo}">${fmtHMS(MIN * 60)}</b></span><span>${MAX}</span></div>
+        <button class="btn btn-navy w-100 py-2" data-iniciar="${tipo}"><i class="bi bi-play-circle me-1"></i> Iniciar ${TIPOS[tipo].curto}</button>`;
+    }
+
+    function blocoPedido(tipo, s) {
+      if (s.ultimo_pedido === "pendente")
+        return `<div class="chip chip-warn mt-3"><i class="bi bi-hourglass-split"></i> Pedido de repetição a aguardar aprovação</div>`;
+      const rej = s.ultimo_pedido === "rejeitado" ? `<div class="small text-danger mt-3"><i class="bi bi-x-circle"></i> O seu último pedido foi rejeitado. Pode fazer um novo pedido.</div>` : "";
+      return `${rej}<button class="btn btn-outline-navy w-100 mt-3" data-pedir="${tipo}"><i class="bi bi-arrow-repeat me-1"></i> Solicitar repetição</button>`;
+    }
+
+    function cartaoEtapa(tipo, num, s, ultima) {
+      const conhecBloq = tipo === "conhecimento" && !s.desbloqueado;
+      let corpo = "", estado = "";
+      if (s.em_curso) {
+        estado = `<span class="chip chip-warn"><i class="bi bi-play-fill"></i> Em curso</span>`;
+        corpo = `<p class="mb-3">Tem um exame em curso. O cronómetro continua a contar.</p>
+                 <a class="btn btn-cyan w-100 py-2" href="exame.html?tipo=${tipo}"><i class="bi bi-arrow-right-circle me-1"></i> Retomar exame</a>`;
+      } else if (s.pode_iniciar) {
+        estado = s.feitos > 0 ? `<span class="chip chip-info"><i class="bi bi-check2"></i> Repetição autorizada</span>`
+                              : `<span class="chip chip-mute">Por realizar</span>`;
+        corpo = blocoInicio(tipo);
+      } else if (s.feitos > 0) {
+        const apto = tipo === "psico" ? Number(s.ultima_nota) >= NOTA_MIN : Number(s.ultima_nota) >= 10;
+        estado = apto ? `<span class="chip chip-ok"><i class="bi bi-check-circle"></i> ${tipo === "psico" ? "Apto" : "Aprovado"}</span>`
+                      : `<span class="chip chip-bad"><i class="bi bi-x-circle"></i> ${tipo === "psico" ? "Não apto" : "Não aprovado"}</span>`;
+        corpo = `<div class="d-flex align-items-end gap-2 mb-2"><div class="nota-grande ${apto ? "text-success" : "text-danger"}">${fmtNota(s.ultima_nota)}</div><div class="pb-1 text-muted-2">valores · última tentativa</div></div>
+          ${tipo === "psico" && !apto && !(s.melhor_nota >= NOTA_MIN) ? `<div class="alert alert-warning small py-2">Obteve menos de ${NOTA_MIN} valores. Para avançar para a aferição de conhecimentos, solicite a repetição do teste psicotécnico.</div>` : ""}
+          ${ultima ? `<a class="btn btn-light border w-100" href="relatorio.html?id=${ultima.id}"><i class="bi bi-file-earmark-text me-1"></i> Ver relatório</a>` : ""}
+          ${blocoPedido(tipo, s)}`;
+      }
+
+      const descr = tipo === "psico"
+        ? `<ul class="areas-lista mb-3">${AREAS_PSICO.map(a => `<li class="chip chip-info">${esc(a)}</li>`).join("")}</ul>`
+        : `<p class="mb-3 text-muted-2">Questões técnicas da categoria <b class="text-dark">${esc(perfil.categorias?.nome || "—")}</b>.</p>`;
+
+      const cadeado = conhecBloq ? `<div class="cadeado"><div><i class="bi bi-lock-fill fs-1 text-primary"></i>
+          <h5 class="titulo mt-2 mb-1">Etapa bloqueada</h5><p class="small mb-0">Disponível após obter ${NOTA_MIN} valores ou mais no Teste Psicotécnico.</p></div></div>` : "";
+
+      return `<div class="col-lg-6"><div class="cartao etapa p-4 h-100 ${conhecBloq ? "bloqueada" : ""}">
+          ${cadeado}<div class="numero-etapa">0${num}</div>
+          <span class="etiqueta">Etapa ${num}</span>
+          <h3 class="mb-2"><i class="bi ${TIPOS[tipo].icone} me-1"></i>${TIPOS[tipo].nome}</h3>
+          <div class="mb-3">${estado}</div>${descr}${corpo}</div></div>`;
+    }
+
+    function render(estado, tentativas) {
+      const ultimaPsico = tentativas.find(t => t.tipo === "psico");
+      const ultimaCon = tentativas.find(t => t.tipo === "conhecimento");
+      document.getElementById("conteudo").innerHTML = `
+        <div class="cartao-navy p-4 p-md-5 mb-4">
+          <span class="etiqueta">Painel do candidato</span>
+          <h1 class="mb-3 upper">Olá, ${esc(perfil.nome)}</h1>
+          <div class="row g-3 position-relative" style="z-index:1">
+            <div class="col-sm-6 col-lg-3"><div class="destaque-info"><b>Código</b><div>${esc(perfil.codigo)}</div></div></div>
+            <div class="col-sm-6 col-lg-5"><div class="destaque-info"><b>Categoria</b><div>${esc(perfil.categorias?.nome || "Não definida")}</div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="destaque-info"><b>Contacto</b><div>${esc(perfil.email || perfil.contacto || "—")}</div></div></div>
+          </div>
+        </div>
+
+        <div class="alert alert-light border small mb-4"><i class="bi bi-info-circle text-primary me-1"></i>
+          Cada teste pode ser feito <b>uma vez</b>. Tem 1 minuto por questão; quando o tempo acaba o exame é submetido automaticamente.
+          Para repetir um teste, use <b>Solicitar repetição</b> e aguarde a aprovação do administrador.</div>
+
+        <div class="row g-4 mb-4">
+          ${cartaoEtapa("psico", 1, estado.psico, ultimaPsico)}
+          ${cartaoEtapa("conhecimento", 2, estado.conhecimento, ultimaCon)}
+        </div>
+
+        <div class="cartao p-4">
+          <h4 class="mb-3"><i class="bi bi-clock-history me-1"></i> Histórico de exames</h4>
+          ${tentativas.length ? `<div class="table-wrap"><table class="table table-hover mb-0">
+            <thead><tr><th>Data</th><th>Teste</th><th>Questões</th><th>Acertos</th><th>Tempo</th><th>Nota</th><th></th></tr></thead>
+            <tbody>${tentativas.map(t => `<tr>
+              <td>${fmtData(t.submetido_em)}</td><td>${TIPOS[t.tipo].nome}</td><td>${t.n_questoes}</td>
+              <td>${t.acertos}/${t.n_questoes}</td><td>${fmtHMS(t.tempo_seg)}</td>
+              <td><span class="chip ${t.nota >= 10 ? "chip-ok" : "chip-bad"}">${fmtNota(t.nota)} val.</span></td>
+              <td class="text-end"><a class="btn btn-sm btn-light border" href="relatorio.html?id=${t.id}">Relatório</a></td></tr>`).join("")}
+            </tbody></table></div>` : `<p class="text-muted-2 mb-0">Ainda não realizou nenhum exame.</p>`}
+        </div>`;
+
+      // sliders
+      document.querySelectorAll("input[type=range]").forEach(r => {
+        const tipo = r.id.replace("n_", "");
+        r.addEventListener("input", () => {
+          document.getElementById("nv_" + tipo).textContent = r.value;
+          document.getElementById("dv_" + tipo).textContent = fmtHMS(r.value * 60);
+        });
+      });
+
+      document.querySelectorAll("[data-iniciar]").forEach(b => b.addEventListener("click", async () => {
+        const tipo = b.dataset.iniciar;
+        const n = Number(document.getElementById("n_" + tipo).value);
+        const ok = await App.confirmar(`Iniciar ${TIPOS[tipo].nome}`, `
+          <p>Vai iniciar um teste com <b>${n} questões</b> e <b>${fmtHMS(n * 60)}</b> de duração.</p>
+          <ul class="small mb-0">
+            <li>O cronómetro começa imediatamente e não pode ser pausado.</li>
+            <li>Pode navegar entre questões e alterar respostas até submeter.</li>
+            <li>Se o tempo terminar, o exame é submetido automaticamente.</li>
+            <li>Só tem direito a <b>uma tentativa</b>.</li>
+          </ul>`, "Começar agora", "btn-cyan");
+        if (ok) location.href = `exame.html?tipo=${tipo}&n=${n}`;
+      }));
+
+      document.querySelectorAll("[data-pedir]").forEach(b => b.addEventListener("click", async () => {
+        const tipo = b.dataset.pedir;
+        const el = await App.confirmar(`Solicitar repetição — ${TIPOS[tipo].curto}`, `
+          <p class="small">O administrador vai analisar o seu pedido. Quando for aprovado, o botão para iniciar volta a aparecer neste painel.</p>
+          <label class="form-label" for="motivoPedido">Motivo (opcional)</label>
+          <textarea class="form-control" id="motivoPedido" rows="3" maxlength="500" placeholder="Ex.: quero melhorar o meu resultado"></textarea>`, "Enviar pedido");
+        if (!el) return;
+        const motivo = el.querySelector("#motivoPedido").value.trim();
+        const { error } = await sb.rpc("pedir_repeticao", { p_tipo: tipo, p_motivo: motivo });
+        if (error) return toast(erroMsg(error), "erro");
+        toast("Pedido enviado. Aguarde a aprovação do administrador.", "ok");
+        carregar();
+      }));
+    }
+
+    try { await carregar(); }
+    catch (e) {
+      document.getElementById("conteudo").innerHTML = `<div class="alert alert-danger">${esc(erroMsg(e))}</div>`;
+    }
+  })();
+  </script>
+</body>
+</html>
