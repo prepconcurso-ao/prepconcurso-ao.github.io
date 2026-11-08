@@ -250,3 +250,31 @@ body.bloqueado main, body.bloqueado .barra-exame .container > div:first-child { 
 #avisoFraude.d-none { display: none !important; }
 @media print { body.exame-protegido * { display: none !important; } body.exame-protegido::after { content: "Impressão não permitida durante o exame."; display: block; } }
 .previa-msg { white-space: pre-wrap; font-family: var(--font-body); font-size: .85rem; background: #e7f8ec; border: 1px solid #bfe9cc; border-radius: 10px; padding: .75rem .9rem; max-height: 240px; overflow: auto; margin: 0; color: #0b2a14; }
+
+/* ---------- Aviso de uso do WhatsApp ---------- */
+.aviso-whats { font-size: .8rem; line-height: 1.35; color: #3c4a66; background: #eef7f1; border: 1px solid #cfe9d8; border-left: 4px solid #25d366; border-radius: 10px; padding: .5rem .7rem; }
+.aviso-whats a { color: #0f5f86; }
+
+/* ---------- Banner do teste MININT ---------- */
+.banner-minint { position: relative; overflow: hidden; display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap;
+  background: linear-gradient(115deg, #0e2350 0%, #173a7a 60%, #0e2350 100%); color: #fff; border-radius: 18px; padding: 1.2rem 1.4rem; box-shadow: 0 10px 30px rgba(14,35,80,.18); }
+.banner-minint::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 6px;
+  background: linear-gradient(90deg, #c8102e 0 33.3%, #111 33.3% 66.6%, #f2c10f 66.6% 100%); }
+.banner-minint h3 { color: #fff; font-size: 1.45rem; text-transform: uppercase; }
+.banner-minint p { color: #d5def0; font-size: .95rem; }
+.banner-minint .bm-icone { width: 62px; height: 62px; flex: 0 0 62px; border-radius: 50%; display: grid; place-items: center; font-size: 1.9rem; background: #f2c10f; color: #0e2350; }
+.banner-minint .bm-novo { display: inline-block; background: #c8102e; color: #fff; font-weight: 700; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; border-radius: 99px; padding: .1rem .6rem; margin-bottom: .25rem; }
+.banner-minint > .flex-grow-1 { flex: 1 1 300px; min-width: 0; }
+.termos-label { color: #3c4a66; }
+.termos-label a { color: #0f5f86; font-weight: 600; }
+.btn-amarelo { background: #f2c10f; color: #0e2350; font-weight: 700; border: 0; border-radius: 10px; padding: .6rem 1.1rem; }
+.btn-amarelo:hover { background: #ffd53a; color: #0e2350; }
+@media (max-width: 575px) { .banner-minint .banner-minint > .flex-grow-1 { flex: 1 1 300px; min-width: 0; }
+.termos-label { color: #3c4a66; }
+.termos-label a { color: #0f5f86; font-weight: 600; }
+.btn-amarelo { width: 100%; } }
+
+/* ---------- Termos ---------- */
+.termos h3 { font-size: 1.3rem; margin-top: 1.6rem; color: #0e2350; scroll-margin-top: 80px; }
+.termos li { margin-bottom: .3rem; }
+.termos .indice a { text-decoration: none; }

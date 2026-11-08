@@ -13,9 +13,13 @@
   );
 
   const TIPOS = {
-    psico: { nome: "Teste Psicotécnico", curto: "Psicotécnico", icone: "bi-lightbulb" },
-    conhecimento: { nome: "Aferição de Conhecimentos", curto: "Conhecimentos", icone: "bi-mortarboard" }
+    psico: { em: "no", nome: "Teste Psicotécnico", curto: "Psicotécnico", icone: "bi-lightbulb" },
+    conhecimento: { em: "na", nome: "Aferição de Conhecimentos", curto: "Conhecimentos", icone: "bi-mortarboard" },
+    minint: { em: "na", nome: "Prova Escrita MININT", curto: "MININT", icone: "bi-shield-shaded" }
   };
+
+  // Aviso mostrado em todas as caixas que pedem o número de WhatsApp
+  const AVISO_WHATS = `<i class="bi bi-shield-lock me-1"></i>O número de WhatsApp é pedido <b>apenas</b> para o cadastro (acesso à conta) e para comunicarmos consigo nos pedidos de 2.ª via de um teste. Não é partilhado nem usado para outros fins. <a href="termos.html" target="_blank" rel="noopener">Termos</a>`;
 
   const AREAS_PSICO = ["Raciocínio Lógico", "Aptidão Verbal", "Aptidão Numérica", "Atenção e Concentração", "Matemática Lógica"];
 
@@ -277,10 +281,11 @@
       <div class="modal-header border-0 pb-0"><h5 class="modal-title titulo"><i class="bi bi-arrow-repeat me-1"></i> Solicitar 2.ª via — ${esc(TIPOS[tipo].curto)}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
-        <p class="small mb-3">O pedido é registado na plataforma e enviado ao administrador pelo WhatsApp com a mensagem-padrão abaixo. Quando for aprovado, o botão para iniciar o teste volta a aparecer no seu painel.</p>
+        <p class="small mb-3">O pedido é registado na plataforma e enviado ao administrador pelo WhatsApp com a mensagem-padrão abaixo. Quando for aprovado, o botão para iniciar o teste volta a aparecer no seu painel. <b>Será informado via WhatsApp após a aprovação do pedido.</b></p>
         <label class="form-label" for="svWhats"><i class="bi bi-whatsapp text-success me-1"></i>O seu número de WhatsApp</label>
         <div class="input-group mb-3"><span class="input-group-text">+244</span>
           <input class="form-control" id="svWhats" inputmode="tel" maxlength="16" placeholder="9xx xxx xxx" value="${esc(fmtWhats(perfil.contacto || ""))}"></div>
+        <div class="aviso-whats mb-3">${AVISO_WHATS}</div>
         <label class="form-label" for="svMotivo">Motivo</label>
         <select class="form-select mb-2" id="svMotivo">${MOTIVOS_2VIA.map((m, k) => `<option value="${k}" ${k === motivoSugerido ? "selected" : ""}>${esc(m)}</option>`).join("")}</select>
         <input class="form-control mb-3" id="svDetalhe" maxlength="200" placeholder="Pormenor (opcional)">
@@ -333,11 +338,11 @@
     if (t.anulado) nivel = { cor: "#8a0b20", fundo: "#fde8eb", icone: "bi-x-octagon-fill", titulo: "Exame anulado", texto: `O exame foi encerrado automaticamente porque atingiu ${(t.incidentes || []).length} incidentes de segurança (sair do ecrã inteiro, mudar de aba, etc.). Pode pedir a 2.ª via e, na próxima tentativa, manter-se no ecrã do exame até ao fim.` };
     else if (nota >= 18) nivel = { cor: "#1d6b2e", fundo: "#e6f6ea", icone: "bi-trophy-fill", titulo: "Excelente!", texto: `Obteve ${n} valores. Desempenho de topo — está muito bem preparado(a). Continue a treinar para manter o nível.` };
     else if (nota >= 14) nivel = { cor: "#1d6b2e", fundo: "#e6f6ea", icone: "bi-stars", titulo: "Muito bom!", texto: `Obteve ${n} valores. Está no bom caminho; reveja as áreas com menos acertos para chegar ao topo.` };
-    else if (nota >= 10) nivel = { cor: "#0f5f86", fundo: "#e3f4fb", icone: "bi-patch-check-fill", titulo: "Aprovado!", texto: `Obteve ${n} valores e passou a fasquia dos 10.` + (t.tipo === "psico" ? " Já pode avançar para a Aferição de Conhecimentos." : " Reforce as áreas mais fracas para subir na classificação.") };
+    else if (nota >= 10) nivel = { cor: "#0f5f86", fundo: "#e3f4fb", icone: "bi-patch-check-fill", titulo: "Aprovado!", texto: `Obteve ${n} valores e passou a fasquia dos 10.` + (t.tipo === "psico" ? " Já pode avançar para a Aferição de Conhecimentos." : t.tipo === "minint" ? " Bom sinal para a prova escrita do MININT — continue a rever a legislação e a deontologia." : " Reforce as áreas mais fracas para subir na classificação.") };
     else nivel = { cor: "#8a0b20", fundo: "#fde8eb", icone: "bi-emoji-frown-fill", titulo: "Não desista!", texto: `Obteve ${n} valores, abaixo dos 10. Veja o desempenho por área, estude os pontos fracos e peça a 2.ª via do teste para tentar de novo.` };
 
     const texto = nota >= 10 && !t.anulado
-      ? `Tirei ${n} valores no ${TIPOS[t.tipo].nome} da ${cfg.NOME_PLATAFORMA}! 📚 Treina também, de graça, para os concursos públicos (ENAPP, MININT e outros):`
+      ? `Tirei ${n} valores ${TIPOS[t.tipo].em} ${TIPOS[t.tipo].nome} da ${cfg.NOME_PLATAFORMA}! 📚 Treina também, de graça, para os concursos públicos (ENAPP, MININT e outros):`
       : `Estou a treinar para os concursos públicos (ENAPP, MININT e outros) na ${cfg.NOME_PLATAFORMA}. Testes cronometrados e grátis — treina também:`;
     const meu = perfil && t.user_id === perfil.id;
 
@@ -351,7 +356,8 @@
       </div>
       <div class="modal-body p-4">
         <p class="mb-3">${nivel.texto}</p>
-        ${meu && (nota < 10 || t.anulado) ? `<button class="btn btn-whats w-100 mb-3" data-segunda><i class="bi bi-whatsapp me-1"></i> Solicitar 2.ª via do teste</button>` : ""}
+        ${meu && (nota < 10 || t.anulado) ? `<button class="btn btn-whats w-100 mb-2" data-segunda><i class="bi bi-whatsapp me-1"></i> Solicitar 2.ª via do teste</button>` : ""}
+        ${meu ? `<button class="btn btn-cyan w-100 mb-3" data-res><i class="bi bi-file-earmark-image me-1"></i> Partilhar o meu relatório com a nota</button>` : ""}
         <h6 class="titulo upper mb-2"><i class="bi bi-share me-1"></i> Partilhe a plataforma com os amigos</h6>
         ${botoesPartilha(texto)}
       </div>
@@ -363,7 +369,90 @@
     ligarPartilha(el, texto);
     const bt = el.querySelector("[data-segunda]");
     if (bt) bt.addEventListener("click", () => { m.hide(); pedirSegundaVia({ perfil, tipo: t.tipo }); });
+    const br = el.querySelector("[data-res]");
+    if (br) br.addEventListener("click", () => { m.hide(); partilharRelatorio({ t, perfil, categoria: t.categorias?.nome || "" }); });
     el.addEventListener("hidden.bs.modal", () => el.remove());
+    m.show();
+  }
+
+  // ------------------------------------------------------------------
+  //  Partilhar o relatório com a nota obtida (imagem + texto)
+  // ------------------------------------------------------------------
+  function imagemRelatorio({ t, perfil, categoria }) {
+    const W = 1080, H = 1350, c = document.createElement("canvas");
+    c.width = W; c.height = H;
+    const g = c.getContext("2d");
+    const NAVY = "#0e2350", CYAN = "#18b2e5", F = "Barlow, 'Segoe UI', Arial, sans-serif", FC = "'Barlow Condensed', 'Arial Narrow', Arial, sans-serif";
+    const nota = Number(t.nota), apto = nota >= 10 && !t.anulado;
+    g.fillStyle = NAVY; g.fillRect(0, 0, W, H);
+    g.fillStyle = "#13306b"; g.beginPath(); g.arc(W - 60, 120, 330, 0, 7); g.fill();
+    // faixa vermelho / preto / amarelo
+    [["#c8102e", 0], ["#111111", 1], ["#f2c10f", 2]].forEach(([cor, k]) => { g.fillStyle = cor; g.fillRect(0, k * 12, W, 12); });
+    g.textAlign = "left"; g.fillStyle = CYAN; g.font = `700 44px ${FC}`; g.fillText((cfg.NOME_PLATAFORMA || "PrepConcurso AO").toUpperCase(), 80, 120);
+    g.fillStyle = "#c9d6ee"; g.font = `500 28px ${F}`; g.fillText("Relatório de exame · simulação", 80, 162);
+    // cartão branco
+    const x = 60, y = 220, w = W - 120, h = 900;
+    g.fillStyle = "#ffffff"; g.beginPath(); g.roundRect ? g.roundRect(x, y, w, h, 36) : g.rect(x, y, w, h); g.fill();
+    g.textAlign = "center";
+    g.fillStyle = "#5d6b86"; g.font = `600 30px ${F}`; g.fillText(TIPOS[t.tipo].nome.toUpperCase(), W / 2, y + 80);
+    g.fillStyle = NAVY; g.font = `700 46px ${FC}`;
+    const nome = (perfil?.nome || "").length > 34 ? perfil.nome.slice(0, 33) + "…" : (perfil?.nome || "");
+    g.fillText(nome.toUpperCase(), W / 2, y + 145);
+    g.fillStyle = "#5d6b86"; g.font = `500 26px ${F}`; g.fillText(`${perfil?.codigo || ""}${categoria ? "  ·  " + categoria : ""}`.slice(0, 70), W / 2, y + 190);
+    // nota
+    g.fillStyle = apto ? "#1d6b2e" : "#b0102a"; g.font = `700 230px ${FC}`; g.fillText(fmtNota(t.nota), W / 2, y + 450);
+    g.fillStyle = "#5d6b86"; g.font = `600 36px ${F}`; g.fillText("valores (escala 0–20)", W / 2, y + 545);
+    const sel = t.anulado ? "EXAME ANULADO" : t.tipo === "psico" ? (apto ? "APTO" : "NÃO APTO") : (apto ? "APROVADO" : "NÃO APROVADO");
+    g.font = `700 40px ${FC}`; const lw = g.measureText(sel).width + 80;
+    g.fillStyle = apto ? "#e6f6ea" : "#fde8eb"; g.beginPath(); g.roundRect ? g.roundRect(W / 2 - lw / 2, y + 580, lw, 70, 35) : g.rect(W / 2 - lw / 2, y + 580, lw, 70); g.fill();
+    g.fillStyle = apto ? "#1d6b2e" : "#b0102a"; g.fillText(sel, W / 2, y + 630);
+    // estatísticas
+    const est = [["Certas", `${t.acertos}/${t.n_questoes}`], ["Respondidas", `${t.respondidas}`], ["Tempo", fmtHMS(t.tempo_seg)]];
+    est.forEach(([r, v], k) => {
+      const cx = x + w / 6 + k * w / 3;
+      g.fillStyle = NAVY; g.font = `700 54px ${FC}`; g.fillText(v, cx, y + 745);
+      g.fillStyle = "#5d6b86"; g.font = `500 26px ${F}`; g.fillText(r, cx, y + 785);
+    });
+    g.fillStyle = "#8a96ad"; g.font = `500 24px ${F}`; g.fillText(`Submetido em ${fmtData(t.submetido_em)}`, W / 2, y + 860);
+    // rodapé
+    g.fillStyle = "#ffffff"; g.font = `700 40px ${FC}`; g.fillText("TREINE TAMBÉM, É GRÁTIS:", W / 2, 1200);
+    g.fillStyle = CYAN; g.font = `700 46px ${F}`; g.fillText(URL_SITE().replace(/^https?:\/\//, "").replace(/\/$/, ""), W / 2, 1262);
+    return c;
+  }
+
+  async function partilharRelatorio({ t, perfil, categoria = "" }) {
+    try { await document.fonts.ready; } catch {}
+    const canvas = imagemRelatorio({ t, perfil, categoria: categoria || perfil?.categorias?.nome || "" });
+    const blob = await new Promise(r => canvas.toBlob(r, "image/png"));
+    const nomeFich = `resultado-${(TIPOS[t.tipo].curto || "teste").toLowerCase()}-${perfil?.codigo || ""}.png`;
+    const ficheiro = new File([blob], nomeFich, { type: "image/png" });
+    const urlImg = URL.createObjectURL(blob);
+    const sel = t.anulado ? "exame anulado" : Number(t.nota) >= 10 ? (t.tipo === "psico" ? "APTO" : "APROVADO") : "a melhorar";
+    const texto = `📊 O meu resultado ${TIPOS[t.tipo].em} ${TIPOS[t.tipo].nome} da ${cfg.NOME_PLATAFORMA}: ${fmtNota(t.nota)} valores (${t.acertos}/${t.n_questoes} certas · ${sel}). Treina também, de graça, para os concursos públicos (ENAPP, MININT e outros):`;
+    const podeFich = !!(navigator.canShare && navigator.canShare({ files: [ficheiro] }));
+
+    const wrap = document.createElement("div");
+    wrap.innerHTML = `<div class="modal fade" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content" style="border-radius:16px">
+      <div class="modal-header border-0 pb-0"><h5 class="modal-title titulo"><i class="bi bi-share me-1"></i> Partilhar o meu relatório</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <img src="${urlImg}" alt="Resultado: ${fmtNota(t.nota)} valores" class="img-fluid rounded-3 border mb-3 d-block mx-auto" style="max-height:340px">
+        <div class="d-grid gap-2 mb-3">
+          ${podeFich ? `<button class="btn btn-cyan" data-img-partilhar><i class="bi bi-image me-1"></i> Partilhar imagem do resultado</button>` : ""}
+          <a class="btn btn-outline-navy" href="${urlImg}" download="${nomeFich}"><i class="bi bi-download me-1"></i> Descarregar imagem</a>
+        </div>
+        <p class="small text-muted-2 mb-2">Ou partilhe o texto com a sua nota (no Instagram, publique a imagem descarregada):</p>
+        ${botoesPartilha(texto)}
+      </div></div></div></div>`;
+    const el = wrap.firstElementChild;
+    document.body.appendChild(el);
+    const m = new bootstrap.Modal(el);
+    ligarPartilha(el, texto);
+    const bi = el.querySelector("[data-img-partilhar]");
+    if (bi) bi.addEventListener("click", async () => {
+      try { await navigator.share({ files: [ficheiro], title: cfg.NOME_PLATAFORMA, text: texto + " " + URL_SITE() }); } catch {}
+    });
+    el.addEventListener("hidden.bs.modal", () => { el.remove(); URL.revokeObjectURL(urlImg); });
     m.show();
   }
 
@@ -411,6 +500,6 @@
     sb, cfg, configurado, TIPOS, AREAS_PSICO, LOGO,
     esc, loginParaEmail, fmtHMS, fmtData, fmtNota, erroMsg, toast, confirmar,
     perfilAtual, exigirSessao, sair, renderTopo, renderRodape, renderAvisoConfig,
-    normalizarWhats, fmtWhats, linkWhatsAppApoio, perfilIncompleto, completarPerfil, botoesPartilha, ligarPartilha, pedirSegundaVia, mostrarResultado
+    normalizarWhats, fmtWhats, linkWhatsAppApoio, perfilIncompleto, completarPerfil, botoesPartilha, ligarPartilha, pedirSegundaVia, mostrarResultado, partilharRelatorio, AVISO_WHATS
   };
 })();

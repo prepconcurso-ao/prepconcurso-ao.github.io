@@ -33,8 +33,16 @@
   }
 
   // ------------------------------------------------------------------ PEDIDOS
+  // Mensagem ao candidato quando o pedido de 2.ª via é aprovado
+  function linkAviso(p) {
+    const primeiro = (p.perfis?.nome || "").split(" ")[0];
+    const txt = `Olá ${primeiro}! O seu pedido de 2.ª via do *${TIPOS[p.tipo].nome}* na ${App.cfg.NOME_PLATAFORMA} foi *aprovado* ✅\n` +
+      `Já pode entrar no painel e iniciar o teste: ${App.cfg.URL_PLATAFORMA || location.origin + "/"}\n` +
+      `Lembre-se: o exame decorre em ecrã inteiro — não saia da página até submeter. Boa sorte!`;
+    return `https://wa.me/${App.cfg.WHATSAPP_INDICATIVO || "244"}${p.perfis.contacto}?text=${encodeURIComponent(txt)}`;
+  }
   async function carregarPedidos() {
-    let q = sb.from("pedidos_repeticao").select("*, perfis!pedidos_repeticao_user_id_fkey(nome, codigo)").order("criado_em", { ascending: false }).limit(300);
+    let q = sb.from("pedidos_repeticao").select("*, perfis!pedidos_repeticao_user_id_fkey(nome, codigo, contacto)").order("criado_em", { ascending: false }).limit(300);
     if ($("fPedidos").value) q = q.eq("estado", $("fPedidos").value);
     const { data, error } = await q;
     if (error) return falha(error);
@@ -47,7 +55,8 @@
         <td><span class="chip ${chip[p.estado]}">${p.estado}</span></td>
         <td class="text-end text-nowrap">${p.estado === "pendente" ? `
           <button class="btn btn-sm btn-success" data-decidir="${p.id}" data-ok="1"><i class="bi bi-check-lg"></i> Aprovar</button>
-          <button class="btn btn-sm btn-outline-danger" data-decidir="${p.id}" data-ok="0"><i class="bi bi-x-lg"></i></button>` : ""}</td>
+          <button class="btn btn-sm btn-outline-danger" data-decidir="${p.id}" data-ok="0"><i class="bi bi-x-lg"></i></button>`
+          : p.estado === "aprovado" && p.perfis?.contacto ? `<a class="btn btn-sm btn-whats" target="_blank" rel="noopener" href="${linkAviso(p)}"><i class="bi bi-whatsapp me-1"></i> Avisar candidato</a>` : ""}</td>
       </tr>`).join("") : `<tr><td colspan="6" class="text-muted-2 text-center py-4">Sem pedidos.</td></tr>`;
   }
   $("fPedidos").onchange = carregarPedidos;
@@ -56,7 +65,7 @@
     b.disabled = true;
     const { error } = await sb.rpc("admin_decidir_pedido", { p_pedido: Number(b.dataset.decidir), p_aprovar: b.dataset.ok === "1" });
     if (error) return falha(error);
-    toast(b.dataset.ok === "1" ? "Pedido aprovado. O candidato já pode repetir o teste." : "Pedido rejeitado.", "ok");
+    toast(b.dataset.ok === "1" ? "Pedido aprovado. Use «Avisar candidato» para o informar pelo WhatsApp." : "Pedido rejeitado.", "ok");
     carregarPedidos(); carregarResumo(); carregarCandidatos();
   });
 
@@ -77,17 +86,19 @@
         <td class="small">${esc(c.categoria || "—")}</td>
         <td>${resumoEtapa(c.estado.psico, "psico")}</td>
         <td>${resumoEtapa(c.estado.conhecimento, "conhecimento")}</td>
+        <td>${c.estado.minint ? resumoEtapa(c.estado.minint, "minint") : "—"}</td>
         <td class="text-end"><div class="dropdown">
           <button class="btn btn-sm btn-light border dropdown-toggle" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">Ações</button>
           <ul class="dropdown-menu dropdown-menu-end">
             <li><a class="dropdown-item" href="#" data-acao="conceder" data-tipo="psico" data-id="${c.id}"><i class="bi bi-arrow-repeat me-1"></i> Conceder nova tentativa — Psicotécnico</a></li>
             <li><a class="dropdown-item" href="#" data-acao="conceder" data-tipo="conhecimento" data-id="${c.id}"><i class="bi bi-arrow-repeat me-1"></i> Conceder nova tentativa — Conhecimentos</a></li>
+            <li><a class="dropdown-item" href="#" data-acao="conceder" data-tipo="minint" data-id="${c.id}"><i class="bi bi-arrow-repeat me-1"></i> Conceder nova tentativa — MININT</a></li>
             <li><a class="dropdown-item" href="#" data-acao="categoria" data-id="${c.id}"><i class="bi bi-tag me-1"></i> Alterar categoria</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="#" data-acao="bloquear" data-id="${c.id}"><i class="bi ${c.bloqueado ? "bi-unlock" : "bi-slash-circle"} me-1"></i> ${c.bloqueado ? "Desbloquear" : "Bloquear"} conta</a></li>
             ${c.id !== perfil.id ? `<li><a class="dropdown-item" href="#" data-acao="admin" data-id="${c.id}"><i class="bi bi-shield me-1"></i> ${c.is_admin ? "Remover administrador" : "Tornar administrador"}</a></li>` : ""}
           </ul></div></td>
-      </tr>`).join("") : `<tr><td colspan="6" class="text-muted-2 text-center py-4">Nenhum candidato encontrado.</td></tr>`;
+      </tr>`).join("") : `<tr><td colspan="7" class="text-muted-2 text-center py-4">Nenhum candidato encontrado.</td></tr>`;
   }
 
   async function carregarCandidatos() {
