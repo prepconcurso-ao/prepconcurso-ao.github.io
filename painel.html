@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link href="css/estilo.css?v=5" rel="stylesheet">
+  <link href="css/estilo.css?v=6" rel="stylesheet">
 </head>
 <body>
   <header id="topo"></header>
@@ -20,9 +20,9 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=5"></script>
-  <script src="js/app.js?v=5"></script>
-  <script src="js/anuncios.js?v=5"></script>
+  <script src="js/config.js?v=6"></script>
+  <script src="js/app.js?v=6"></script>
+  <script src="js/anuncios.js?v=6"></script>
   <script>
   (async () => {
     const { sb, esc, toast, erroMsg, fmtNota, fmtData, fmtHMS, TIPOS, AREAS_PSICO, cfg } = App;
@@ -31,6 +31,7 @@
     App.renderRodape();
     const NOTA_MIN = cfg.NOTA_MINIMA_PSICO || 10;
     const MIN = cfg.MIN_QUESTOES || 25, MAX = cfg.MAX_QUESTOES || 50;
+    const TEXTO_PARTILHA = `Estou a treinar para os concursos públicos (ENAPP, MININT e outros) na ${cfg.NOME_PLATAFORMA}: testes psicotécnicos e de conhecimentos cronometrados, grátis. Treina também:`;
 
     async function carregar() {
       const [est, tent] = await Promise.all([
@@ -54,9 +55,10 @@
 
     function blocoPedido(tipo, s) {
       if (s.ultimo_pedido === "pendente")
-        return `<div class="chip chip-warn mt-3"><i class="bi bi-hourglass-split"></i> Pedido de repetição a aguardar aprovação</div>`;
+        return `<div class="chip chip-warn mt-3"><i class="bi bi-hourglass-split"></i> Pedido de 2.ª via a aguardar aprovação</div>
+          <button class="btn btn-link btn-sm px-0 d-block" data-pedir="${tipo}"><i class="bi bi-whatsapp text-success"></i> Reenviar pedido pelo WhatsApp</button>`;
       const rej = s.ultimo_pedido === "rejeitado" ? `<div class="small text-danger mt-3"><i class="bi bi-x-circle"></i> O seu último pedido foi rejeitado. Pode fazer um novo pedido.</div>` : "";
-      return `${rej}<button class="btn btn-outline-navy w-100 mt-3" data-pedir="${tipo}"><i class="bi bi-arrow-repeat me-1"></i> Solicitar repetição</button>`;
+      return `${rej}<button class="btn btn-whats w-100 mt-3" data-pedir="${tipo}"><i class="bi bi-whatsapp me-1"></i> Solicitar 2.ª via do teste</button>`;
     }
 
     function cartaoEtapa(tipo, num, s, ultima) {
@@ -75,7 +77,7 @@
         estado = apto ? `<span class="chip chip-ok"><i class="bi bi-check-circle"></i> ${tipo === "psico" ? "Apto" : "Aprovado"}</span>`
                       : `<span class="chip chip-bad"><i class="bi bi-x-circle"></i> ${tipo === "psico" ? "Não apto" : "Não aprovado"}</span>`;
         corpo = `<div class="d-flex align-items-end gap-2 mb-2"><div class="nota-grande ${apto ? "text-success" : "text-danger"}">${fmtNota(s.ultima_nota)}</div><div class="pb-1 text-muted-2">valores · última tentativa</div></div>
-          ${tipo === "psico" && !apto && !(s.melhor_nota >= NOTA_MIN) ? `<div class="alert alert-warning small py-2">Obteve menos de ${NOTA_MIN} valores. Para avançar para a aferição de conhecimentos, solicite a repetição do teste psicotécnico.</div>` : ""}
+          ${tipo === "psico" && !apto && !(s.melhor_nota >= NOTA_MIN) ? `<div class="alert alert-warning small py-2">Obteve menos de ${NOTA_MIN} valores. Para avançar para a aferição de conhecimentos, solicite a 2.ª via do teste psicotécnico.</div>` : ""}
           ${ultima ? `<a class="btn btn-light border w-100" href="relatorio.html?id=${ultima.id}"><i class="bi bi-file-earmark-text me-1"></i> Ver relatório</a>` : ""}
           ${blocoPedido(tipo, s)}`;
       }
@@ -104,13 +106,13 @@
           <div class="row g-3 position-relative" style="z-index:1">
             <div class="col-sm-6 col-lg-3"><div class="destaque-info"><b>Código</b><div>${esc(perfil.codigo)}</div></div></div>
             <div class="col-sm-6 col-lg-5"><div class="destaque-info"><b>Categoria</b><div>${esc(perfil.categorias?.nome || "Não definida")}</div></div></div>
-            <div class="col-sm-6 col-lg-4"><div class="destaque-info"><b>Contacto</b><div>${esc(perfil.email || perfil.contacto || "—")}</div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="destaque-info"><b><i class="bi bi-whatsapp"></i> WhatsApp</b><div>${perfil.contacto ? "+244 " + esc(App.fmtWhats(perfil.contacto)) : esc(perfil.email || "—")}</div></div></div>
           </div>
         </div>
 
         <div class="alert alert-light border small mb-4"><i class="bi bi-info-circle text-primary me-1"></i>
           Cada teste pode ser feito <b>uma vez</b>. Tem 1 minuto por questão; quando o tempo acaba o exame é submetido automaticamente.
-          Para repetir um teste, use <b>Solicitar repetição</b> e aguarde a aprovação do administrador.</div>
+          Para repetir um teste, use <b>Solicitar 2.ª via</b>: o pedido segue pelo WhatsApp e o administrador aprova-o.</div>
 
         <div class="row g-4 mb-4">
           ${cartaoEtapa("psico", 1, estado.psico, ultimaPsico)}
@@ -127,7 +129,14 @@
               <td><span class="chip ${t.nota >= 10 ? "chip-ok" : "chip-bad"}">${fmtNota(t.nota)} val.</span></td>
               <td class="text-end"><a class="btn btn-sm btn-light border" href="relatorio.html?id=${t.id}">Relatório</a></td></tr>`).join("")}
             </tbody></table></div>` : `<p class="text-muted-2 mb-0">Ainda não realizou nenhum exame.</p>`}
+        </div>
+
+        <div class="cartao p-4 mt-4">
+          <h4 class="mb-1"><i class="bi bi-share me-1"></i> Convide os seus amigos</h4>
+          <p class="text-muted-2 small mb-3">Partilhe a plataforma com quem também se está a preparar para os concursos públicos.</p>
+          <div id="partilhaPainel" style="max-width:560px">${App.botoesPartilha(TEXTO_PARTILHA)}</div>
         </div>`;
+      App.ligarPartilha(document.getElementById("partilhaPainel"), TEXTO_PARTILHA);
 
       // sliders
       document.querySelectorAll("input[type=range]").forEach(r => {
@@ -152,18 +161,9 @@
         if (ok) location.href = `exame.html?tipo=${tipo}&n=${n}`;
       }));
 
-      document.querySelectorAll("[data-pedir]").forEach(b => b.addEventListener("click", async () => {
+      document.querySelectorAll("[data-pedir]").forEach(b => b.addEventListener("click", () => {
         const tipo = b.dataset.pedir;
-        const el = await App.confirmar(`Solicitar repetição — ${TIPOS[tipo].curto}`, `
-          <p class="small">O administrador vai analisar o seu pedido. Quando for aprovado, o botão para iniciar volta a aparecer neste painel.</p>
-          <label class="form-label" for="motivoPedido">Motivo (opcional)</label>
-          <textarea class="form-control" id="motivoPedido" rows="3" maxlength="500" placeholder="Ex.: quero melhorar o meu resultado"></textarea>`, "Enviar pedido");
-        if (!el) return;
-        const motivo = el.querySelector("#motivoPedido").value.trim();
-        const { error } = await sb.rpc("pedir_repeticao", { p_tipo: tipo, p_motivo: motivo });
-        if (error) return toast(erroMsg(error), "erro");
-        toast("Pedido enviado. Aguarde a aprovação do administrador.", "ok");
-        carregar();
+        App.pedirSegundaVia({ perfil, tipo, nota: estado[tipo].ultima_nota, aoConcluir: carregar });
       }));
     }
 

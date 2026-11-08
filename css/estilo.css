@@ -227,3 +227,16 @@ h1, h2, h3, h4, .titulo { font-family: var(--font-head); font-weight: 700; lette
   .pub-btn { font-size: .82rem; padding: .32rem .75rem; }
 }
 @media print { .publicidade { display: none !important; } }
+
+/* =====================================================================
+   Partilha e WhatsApp
+   ===================================================================== */
+.btn-whats { background: #25d366; color: #0b2a14; border: 0; font-weight: 700; }
+.btn-whats:hover, .btn-whats:focus { background: #1fb457; color: #fff; }
+.grelha-partilha { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; }
+.btn-partilha { display: flex; flex-direction: column; align-items: center; gap: .25rem; padding: .6rem .3rem; border-radius: 12px;
+  background: color-mix(in srgb, var(--cor) 10%, #fff); color: var(--cor); text-decoration: none; font-size: .75rem; font-weight: 600;
+  border: 1px solid color-mix(in srgb, var(--cor) 25%, #fff); transition: transform .12s, background .12s; }
+.btn-partilha i { font-size: 1.45rem; }
+.btn-partilha:hover { background: var(--cor); color: #fff; transform: translateY(-2px); }
+@media (max-width: 400px) { .grelha-partilha { grid-template-columns: repeat(4, 1fr); gap: .35rem; } .btn-partilha span { font-size: .66rem; } }

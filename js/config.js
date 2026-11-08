@@ -9,6 +9,7 @@ window.APP_CONFIG = {
   SUPABASE_ANON_KEY: "sb_publishable_dCX3Or6iBNhJgpOlMgmojA_QNFnuyOt",
 
   NOME_PLATAFORMA: "PrepConcurso AO",
+  URL_PLATAFORMA: "https://prepconcurso-ao.github.io/",   // endereço partilhado nas redes sociais
   SUBTITULO: "Preparação para Concursos Públicos",
   CONTACTO_SUPORTE: "massallajamesmsj@gmail.com",
   TELEFONE_APOIO: "938 791 898",          // telefone e WhatsApp

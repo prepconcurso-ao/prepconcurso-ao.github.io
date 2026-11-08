@@ -30,12 +30,25 @@
     return String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
 
+  // Número de WhatsApp angolano → 9 dígitos (ex.: "+244 923 456 789" → "923456789"); null se inválido
+  function normalizarWhats(v) {
+    let d = String(v || "").replace(/\D/g, "");
+    if (d.startsWith("00244")) d = d.slice(5);
+    else if (d.startsWith("244") && d.length === 12) d = d.slice(3);
+    return /^9\d{8}$/.test(d) ? d : null;
+  }
+  const fmtWhats = d => (d && /^\d{9}$/.test(d)) ? `${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6)}` : (d || "");
+
   function loginParaEmail(login) {
     login = String(login || "").trim();
-    if (login.includes("@")) return login.toLowerCase();
-    const digitos = login.replace(/\D/g, "");
+    if (login.includes("@")) return login.toLowerCase();   // administradores antigos com e-mail
+    const digitos = normalizarWhats(login) || login.replace(/\D/g, "");
     return digitos ? `${digitos}@${cfg.DOMINIO_TELEFONE || "tel.prepconcurso.app"}` : "";
   }
+
+  const URL_SITE = () => cfg.URL_PLATAFORMA || location.origin + "/";
+  const linkWhatsAppApoio = texto =>
+    `https://wa.me/${cfg.WHATSAPP_INDICATIVO || "244"}${String(cfg.TELEFONE_APOIO || "").replace(/\D/g, "")}?text=${encodeURIComponent(texto)}`;
 
   function fmtHMS(seg) {
     seg = Math.max(0, Math.round(seg || 0));
@@ -176,9 +189,143 @@
     });
   }
 
+
+  // ------------------------------------------------------------------
+  //  Partilha nas redes sociais
+  // ------------------------------------------------------------------
+  function botoesPartilha(texto) {
+    const url = URL_SITE();
+    const t = encodeURIComponent(texto), u = encodeURIComponent(url), tu = encodeURIComponent(texto + " " + url);
+    const b = (rede, cor, icone, nome, href) =>
+      `<a class="btn-partilha" style="--cor:${cor}" data-rede="${rede}" ${href ? `href="${href}" target="_blank" rel="noopener"` : `href="#"`}>
+         <i class="bi ${icone}"></i><span>${nome}</span></a>`;
+    return `<div class="grelha-partilha">
+      ${b("whatsapp", "#25d366", "bi-whatsapp", "WhatsApp", `https://wa.me/?text=${tu}`)}
+      ${b("facebook", "#1877f2", "bi-facebook", "Facebook", `https://www.facebook.com/sharer/sharer.php?u=${u}&quote=${t}`)}
+      ${b("instagram", "#e1306c", "bi-instagram", "Instagram", "")}
+      ${b("telegram", "#229ed9", "bi-telegram", "Telegram", `https://t.me/share/url?url=${u}&text=${t}`)}
+      ${b("x", "#111111", "bi-twitter-x", "X", `https://twitter.com/intent/tweet?text=${t}&url=${u}`)}
+      ${b("linkedin", "#0a66c2", "bi-linkedin", "LinkedIn", `https://www.linkedin.com/sharing/share-offsite/?url=${u}`)}
+      ${b("email", "#5d6b86", "bi-envelope", "E-mail", `mailto:?subject=${encodeURIComponent(cfg.NOME_PLATAFORMA || "")}&body=${tu}`)}
+      ${b("copiar", "#173a7a", "bi-link-45deg", "Copiar link", "")}
+    </div>
+    ${navigator.share ? `<button type="button" class="btn btn-outline-navy w-100 mt-2" data-rede="nativo"><i class="bi bi-share me-1"></i> Outras aplicações</button>` : ""}`;
+  }
+
+  function ligarPartilha(raiz, texto) {
+    const url = URL_SITE();
+    const copiar = async () => {
+      try { await navigator.clipboard.writeText(texto + " " + url); return true; }
+      catch { const ta = document.createElement("textarea"); ta.value = texto + " " + url; document.body.appendChild(ta); ta.select();
+              try { document.execCommand("copy"); return true; } catch { return false; } finally { ta.remove(); } }
+    };
+    raiz.querySelectorAll("[data-rede]").forEach(el => el.addEventListener("click", async e => {
+      const rede = el.dataset.rede;
+      if (rede === "copiar") { e.preventDefault(); toast(await copiar() ? "Link copiado. Cole-o onde quiser partilhar." : "Não foi possível copiar.", "ok"); }
+      else if (rede === "nativo" || (rede === "instagram" && navigator.share)) {
+        e.preventDefault();
+        try { await navigator.share({ title: cfg.NOME_PLATAFORMA, text: texto, url }); } catch {}
+      } else if (rede === "instagram") {
+        e.preventDefault(); await copiar();
+        toast("Texto e link copiados. Cole-os na sua publicação ou história do Instagram.", "ok");
+        window.open("https://www.instagram.com/", "_blank", "noopener");
+      }
+    }));
+  }
+
+  // ------------------------------------------------------------------
+  //  Pedido de 2.ª via (repetição) — WhatsApp + registo na plataforma
+  // ------------------------------------------------------------------
+  function pedirSegundaVia({ perfil, tipo, nota = null, aoConcluir = null }) {
+    const nomeTeste = TIPOS[tipo].nome;
+    const wrap = document.createElement("div");
+    wrap.innerHTML = `<div class="modal fade" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:16px">
+      <div class="modal-header border-0 pb-0"><h5 class="modal-title titulo"><i class="bi bi-arrow-repeat me-1"></i> Solicitar 2.ª via — ${esc(TIPOS[tipo].curto)}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <p class="small mb-3">O pedido é registado na plataforma e enviado ao administrador pelo WhatsApp. Quando for aprovado, o botão para iniciar o teste volta a aparecer no seu painel.</p>
+        <label class="form-label" for="svWhats"><i class="bi bi-whatsapp text-success me-1"></i>O seu número de WhatsApp</label>
+        <div class="input-group mb-3"><span class="input-group-text">+244</span>
+          <input class="form-control" id="svWhats" inputmode="tel" maxlength="16" placeholder="9xx xxx xxx" value="${esc(fmtWhats(perfil.contacto || ""))}"></div>
+        <label class="form-label" for="svMotivo">Mensagem (opcional)</label>
+        <textarea class="form-control" id="svMotivo" rows="2" maxlength="300" placeholder="Ex.: quero melhorar o meu resultado"></textarea>
+      </div>
+      <div class="modal-footer border-0 pt-0"><button class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-whats" data-ok><i class="bi bi-whatsapp me-1"></i> Solicitar pelo WhatsApp</button></div>
+    </div></div></div>`;
+    const el = wrap.firstElementChild;
+    document.body.appendChild(el);
+    const m = new bootstrap.Modal(el);
+    el.addEventListener("hidden.bs.modal", () => el.remove());
+    el.querySelector("[data-ok]").addEventListener("click", () => {
+      const whats = normalizarWhats(el.querySelector("#svWhats").value);
+      if (!whats) { toast("Indique um número de WhatsApp válido (9 dígitos).", "aviso"); return; }
+      const motivo = el.querySelector("#svMotivo").value.trim();
+      const cat = perfil.categorias?.nome ? `, categoria ${perfil.categorias.nome}` : "";
+      const msg = `Olá! Chamo-me *${perfil.nome}* (código ${perfil.codigo}${cat}).\n` +
+        `Venho solicitar a *2.ª via do ${nomeTeste}* na plataforma ${cfg.NOME_PLATAFORMA}` +
+        (nota !== null && nota !== undefined ? `; na última tentativa obtive ${fmtNota(nota)} valores` : "") + `.\n` +
+        `O meu WhatsApp: +244 ${fmtWhats(whats)}` + (motivo ? `\nMensagem: ${motivo}` : "") + `\nObrigado(a).`;
+      // abrir o WhatsApp de imediato (no próprio clique, para não ser bloqueado pelo navegador)
+      window.open(linkWhatsAppApoio(msg), "_blank", "noopener");
+      m.hide();
+      sb.rpc("pedir_repeticao", { p_tipo: tipo, p_motivo: `WhatsApp: +244 ${fmtWhats(whats)}` + (motivo ? ` | ${motivo}` : "") })
+        .then(({ error }) => {
+          if (error && !/pendente/i.test(error.message)) toast(erroMsg(error), "erro");
+          else toast(error ? "O seu pedido já estava registado. Mensagem enviada pelo WhatsApp." : "Pedido registado. Conclua o envio da mensagem no WhatsApp.", "ok");
+          if (aoConcluir) aoConcluir();
+        });
+    });
+    m.show();
+  }
+
+  // ------------------------------------------------------------------
+  //  Popup no fim do exame: mensagem segundo a nota + partilha
+  // ------------------------------------------------------------------
+  function mostrarResultado({ t, perfil }) {
+    const nota = Number(t.nota);
+    const n = fmtNota(t.nota);
+    let nivel;
+    if (nota >= 18) nivel = { cor: "#1d6b2e", fundo: "#e6f6ea", icone: "bi-trophy-fill", titulo: "Excelente!", texto: `Obteve ${n} valores. Desempenho de topo — está muito bem preparado(a). Continue a treinar para manter o nível.` };
+    else if (nota >= 14) nivel = { cor: "#1d6b2e", fundo: "#e6f6ea", icone: "bi-stars", titulo: "Muito bom!", texto: `Obteve ${n} valores. Está no bom caminho; reveja as áreas com menos acertos para chegar ao topo.` };
+    else if (nota >= 10) nivel = { cor: "#0f5f86", fundo: "#e3f4fb", icone: "bi-patch-check-fill", titulo: "Aprovado!", texto: `Obteve ${n} valores e passou a fasquia dos 10.` + (t.tipo === "psico" ? " Já pode avançar para a Aferição de Conhecimentos." : " Reforce as áreas mais fracas para subir na classificação.") };
+    else nivel = { cor: "#8a0b20", fundo: "#fde8eb", icone: "bi-emoji-frown-fill", titulo: "Não desista!", texto: `Obteve ${n} valores, abaixo dos 10. Veja o desempenho por área, estude os pontos fracos e peça a 2.ª via do teste para tentar de novo.` };
+
+    const texto = nota >= 10
+      ? `Tirei ${n} valores no ${TIPOS[t.tipo].nome} da ${cfg.NOME_PLATAFORMA}! 📚 Treina também, de graça, para os concursos públicos (ENAPP, MININT e outros):`
+      : `Estou a treinar para os concursos públicos (ENAPP, MININT e outros) na ${cfg.NOME_PLATAFORMA}. Testes cronometrados e grátis — treina também:`;
+    const meu = perfil && t.user_id === perfil.id;
+
+    const wrap = document.createElement("div");
+    wrap.innerHTML = `<div class="modal fade" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:18px;overflow:hidden">
+      <div class="text-center p-4" style="background:${nivel.fundo};color:${nivel.cor}">
+        <i class="bi ${nivel.icone}" style="font-size:3rem"></i>
+        <h3 class="titulo upper mt-1 mb-1" style="color:${nivel.cor}">${nivel.titulo}</h3>
+        <div class="nota-grande">${n} <small style="font-size:1rem">valores</small></div>
+        <div class="small mt-1">${t.acertos} de ${t.n_questoes} certas · ${TIPOS[t.tipo].nome}</div>
+      </div>
+      <div class="modal-body p-4">
+        <p class="mb-3">${nivel.texto}</p>
+        ${meu && nota < 10 ? `<button class="btn btn-whats w-100 mb-3" data-segunda><i class="bi bi-whatsapp me-1"></i> Solicitar 2.ª via do teste</button>` : ""}
+        <h6 class="titulo upper mb-2"><i class="bi bi-share me-1"></i> Partilhe a plataforma com os amigos</h6>
+        ${botoesPartilha(texto)}
+      </div>
+      <div class="modal-footer border-0 pt-0"><button class="btn btn-navy w-100" data-bs-dismiss="modal">Ver relatório completo</button></div>
+    </div></div></div>`;
+    const el = wrap.firstElementChild;
+    document.body.appendChild(el);
+    const m = new bootstrap.Modal(el);
+    ligarPartilha(el, texto);
+    const bt = el.querySelector("[data-segunda]");
+    if (bt) bt.addEventListener("click", () => { m.hide(); pedirSegundaVia({ perfil, tipo: t.tipo, nota: t.nota }); });
+    el.addEventListener("hidden.bs.modal", () => el.remove());
+    m.show();
+  }
+
   window.App = {
     sb, cfg, configurado, TIPOS, AREAS_PSICO, LOGO,
     esc, loginParaEmail, fmtHMS, fmtData, fmtNota, erroMsg, toast, confirmar,
-    perfilAtual, exigirSessao, sair, renderTopo, renderRodape, renderAvisoConfig
+    perfilAtual, exigirSessao, sair, renderTopo, renderRodape, renderAvisoConfig,
+    normalizarWhats, fmtWhats, linkWhatsAppApoio, botoesPartilha, ligarPartilha, pedirSegundaVia, mostrarResultado
   };
 })();

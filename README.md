@@ -13,12 +13,14 @@ Plataforma web para preparação de candidatos a concursos públicos, com **Test
 
 | Regra | Implementação |
 |---|---|
-| Cadastro com nome, senha, e-mail **ou** telefone e categoria | `index.html` + gatilho `criar_perfil_novo_utilizador` |
+| Cadastro com nome, senha, **número de WhatsApp** e categoria | `index.html` + gatilho `criar_perfil_novo_utilizador` |
 | Cada candidato só faz **um** teste de cada etapa | `iniciar_exame` verifica as tentativas usadas |
 | Mais tentativas só com **aprovação do administrador** | Candidato pede em `painel.html`; admin aprova em `admin.html` |
 | Escolha de **25 a 50 questões**, **1 minuto por questão** | Barra deslizante no painel; tempo controlado pelo servidor |
 | Psicotécnico ≥ **10 valores** desbloqueia a Aferição de Conhecimentos | `_estado_candidato` (usa a melhor nota psicotécnica) |
-| Nota < 10 → solicitar repetição do psicotécnico | Botão «Solicitar repetição» |
+| Nota < 10 → solicitar 2.ª via | Botão verde «Solicitar 2.ª via»: regista o pedido e abre o WhatsApp do administrador com mensagem personalizada |
+| Fim de cada teste | Popup com mensagem segundo a nota e botões de partilha (WhatsApp, Facebook, Instagram, Telegram, X, LinkedIn, e-mail, copiar link) |
+| Prova escrita do MININT | Categoria «Ministério do Interior (MININT) — Prova Escrita» (`tools/questoes_minint.py`, `supabase/06_minint.json`) |
 | Psicotécnico: raciocínio lógico, aptidão verbal e numérica, atenção e concentração, matemática lógica | Sorteio equilibrado entre as 5 áreas |
 | Conhecimentos de acordo com a categoria do cadastro | Questões filtradas pela categoria do candidato |
 | Relatório no fim de cada etapa (como o comprovativo oficial) | `relatorio.html` — código, candidato, categoria, nota, total de questões, duração, tempo de submissão, gráfico respondidas/não respondidas, data, desempenho por área |
