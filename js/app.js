@@ -236,45 +236,89 @@
   // ------------------------------------------------------------------
   //  Pedido de 2.ª via (repetição) — WhatsApp + registo na plataforma
   // ------------------------------------------------------------------
-  function pedirSegundaVia({ perfil, tipo, nota = null, aoConcluir = null }) {
-    const nomeTeste = TIPOS[tipo].nome;
+  const MOTIVOS_2VIA = [
+    "Pretendo melhorar o meu resultado",
+    "Tive um problema técnico durante o teste (Internet, energia ou dispositivo)",
+    "O exame foi anulado por incidente de segurança",
+    "Fiquei abaixo dos 10 valores e quero avançar para a etapa seguinte",
+    "Outro motivo"
+  ];
+
+  // Mensagem-padrão do pedido de 2.ª via, com as informações do candidato
+  function mensagemSegundaVia({ perfil, tipo, whats, ultima, feitos, motivo, detalhe }) {
+    const linhas = [
+      "📝 *PEDIDO DE 2.ª VIA DE TESTE*",
+      `_${cfg.NOME_PLATAFORMA}_`,
+      "",
+      `👤 *Nome:* ${perfil.nome}`,
+      `🆔 *Código do candidato:* ${perfil.codigo}`,
+      `📱 *WhatsApp:* +244 ${fmtWhats(whats)}`,
+      `📂 *Categoria:* ${perfil.categorias?.nome || "—"}`,
+      `🧪 *Teste:* ${TIPOS[tipo].nome}`,
+      `📊 *Última nota:* ${ultima ? `${fmtNota(ultima.nota)} valores (${fmtData(ultima.submetido_em, false)})${ultima.anulado ? " — anulado" : ""}` : "—"}`,
+      `🔁 *Tentativas realizadas:* ${feitos}`,
+      `✉️ *Motivo:* ${motivo}${detalhe ? ` — ${detalhe}` : ""}`,
+      "",
+      "Solicito autorização para realizar novamente o teste.",
+      "Obrigado(a)."
+    ];
+    return linhas.join("\n");
+  }
+
+  async function pedirSegundaVia({ perfil, tipo, aoConcluir = null }) {
+    // dados do candidato para a mensagem-padrão
+    const { data: tent } = await sb.from("tentativas").select("nota, submetido_em, anulado")
+      .eq("user_id", perfil.id).eq("tipo", tipo).eq("estado", "submetido").order("submetido_em", { ascending: false });
+    const ultima = (tent || [])[0] || null, feitos = (tent || []).length;
+    const motivoSugerido = ultima?.anulado ? 2 : (ultima && Number(ultima.nota) < 10 ? 3 : 0);
+
     const wrap = document.createElement("div");
-    wrap.innerHTML = `<div class="modal fade" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:16px">
+    wrap.innerHTML = `<div class="modal fade" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content" style="border-radius:16px">
       <div class="modal-header border-0 pb-0"><h5 class="modal-title titulo"><i class="bi bi-arrow-repeat me-1"></i> Solicitar 2.ª via — ${esc(TIPOS[tipo].curto)}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
-        <p class="small mb-3">O pedido é registado na plataforma e enviado ao administrador pelo WhatsApp. Quando for aprovado, o botão para iniciar o teste volta a aparecer no seu painel.</p>
+        <p class="small mb-3">O pedido é registado na plataforma e enviado ao administrador pelo WhatsApp com a mensagem-padrão abaixo. Quando for aprovado, o botão para iniciar o teste volta a aparecer no seu painel.</p>
         <label class="form-label" for="svWhats"><i class="bi bi-whatsapp text-success me-1"></i>O seu número de WhatsApp</label>
         <div class="input-group mb-3"><span class="input-group-text">+244</span>
           <input class="form-control" id="svWhats" inputmode="tel" maxlength="16" placeholder="9xx xxx xxx" value="${esc(fmtWhats(perfil.contacto || ""))}"></div>
-        <label class="form-label" for="svMotivo">Mensagem (opcional)</label>
-        <textarea class="form-control" id="svMotivo" rows="2" maxlength="300" placeholder="Ex.: quero melhorar o meu resultado"></textarea>
+        <label class="form-label" for="svMotivo">Motivo</label>
+        <select class="form-select mb-2" id="svMotivo">${MOTIVOS_2VIA.map((m, k) => `<option value="${k}" ${k === motivoSugerido ? "selected" : ""}>${esc(m)}</option>`).join("")}</select>
+        <input class="form-control mb-3" id="svDetalhe" maxlength="200" placeholder="Pormenor (opcional)">
+        <label class="form-label mb-1">Mensagem que será enviada</label>
+        <pre class="previa-msg" id="svPrevia"></pre>
       </div>
       <div class="modal-footer border-0 pt-0"><button class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-whats" data-ok><i class="bi bi-whatsapp me-1"></i> Solicitar pelo WhatsApp</button></div>
+        <button class="btn btn-whats" data-ok><i class="bi bi-whatsapp me-1"></i> Enviar pedido pelo WhatsApp</button></div>
     </div></div></div>`;
     const el = wrap.firstElementChild;
     document.body.appendChild(el);
     const m = new bootstrap.Modal(el);
     el.addEventListener("hidden.bs.modal", () => el.remove());
-    el.querySelector("[data-ok]").addEventListener("click", () => {
+
+    const dados = () => {
       const whats = normalizarWhats(el.querySelector("#svWhats").value);
-      if (!whats) { toast("Indique um número de WhatsApp válido (9 dígitos).", "aviso"); return; }
-      const motivo = el.querySelector("#svMotivo").value.trim();
-      const cat = perfil.categorias?.nome ? `, categoria ${perfil.categorias.nome}` : "";
-      const msg = `Olá! Chamo-me *${perfil.nome}* (código ${perfil.codigo}${cat}).\n` +
-        `Venho solicitar a *2.ª via do ${nomeTeste}* na plataforma ${cfg.NOME_PLATAFORMA}` +
-        (nota !== null && nota !== undefined ? `; na última tentativa obtive ${fmtNota(nota)} valores` : "") + `.\n` +
-        `O meu WhatsApp: +244 ${fmtWhats(whats)}` + (motivo ? `\nMensagem: ${motivo}` : "") + `\nObrigado(a).`;
-      // abrir o WhatsApp de imediato (no próprio clique, para não ser bloqueado pelo navegador)
-      window.open(linkWhatsAppApoio(msg), "_blank", "noopener");
+      const motivo = MOTIVOS_2VIA[Number(el.querySelector("#svMotivo").value)];
+      const detalhe = el.querySelector("#svDetalhe").value.trim();
+      return { whats, motivo, detalhe, texto: mensagemSegundaVia({ perfil, tipo, whats: whats || el.querySelector("#svWhats").value, ultima, feitos, motivo, detalhe }) };
+    };
+    const atualizar = () => { el.querySelector("#svPrevia").textContent = dados().texto; };
+    ["input", "change"].forEach(ev => el.querySelectorAll("input, select").forEach(c => c.addEventListener(ev, atualizar)));
+    atualizar();
+
+    el.querySelector("[data-ok]").addEventListener("click", () => {
+      const d = dados();
+      if (!d.whats) { toast("Indique um número de WhatsApp válido (9 dígitos).", "aviso"); return; }
+      if (d.motivo === "Outro motivo" && !d.detalhe) { toast("Descreva o motivo no campo de pormenor.", "aviso"); return; }
+      // abrir o WhatsApp no próprio clique, para não ser bloqueado pelo navegador
+      window.open(linkWhatsAppApoio(d.texto), "_blank", "noopener");
       m.hide();
-      sb.rpc("pedir_repeticao", { p_tipo: tipo, p_motivo: `WhatsApp: +244 ${fmtWhats(whats)}` + (motivo ? ` | ${motivo}` : "") })
-        .then(({ error }) => {
-          if (error && !/pendente/i.test(error.message)) toast(erroMsg(error), "erro");
-          else toast(error ? "O seu pedido já estava registado. Mensagem enviada pelo WhatsApp." : "Pedido registado. Conclua o envio da mensagem no WhatsApp.", "ok");
-          if (aoConcluir) aoConcluir();
-        });
+      const registo = `WhatsApp: +244 ${fmtWhats(d.whats)} | Motivo: ${d.motivo}${d.detalhe ? " — " + d.detalhe : ""}` +
+        (ultima ? ` | Última nota: ${fmtNota(ultima.nota)}${ultima.anulado ? " (anulado)" : ""}` : "") + ` | Tentativas: ${feitos}`;
+      sb.rpc("pedir_repeticao", { p_tipo: tipo, p_motivo: registo }).then(({ error }) => {
+        if (error && !/pendente/i.test(error.message)) toast(erroMsg(error), "erro");
+        else toast(error ? "O seu pedido já estava registado. Mensagem enviada pelo WhatsApp." : "Pedido registado. Conclua o envio da mensagem no WhatsApp.", "ok");
+        if (aoConcluir) aoConcluir();
+      });
     });
     m.show();
   }
@@ -286,12 +330,13 @@
     const nota = Number(t.nota);
     const n = fmtNota(t.nota);
     let nivel;
-    if (nota >= 18) nivel = { cor: "#1d6b2e", fundo: "#e6f6ea", icone: "bi-trophy-fill", titulo: "Excelente!", texto: `Obteve ${n} valores. Desempenho de topo — está muito bem preparado(a). Continue a treinar para manter o nível.` };
+    if (t.anulado) nivel = { cor: "#8a0b20", fundo: "#fde8eb", icone: "bi-x-octagon-fill", titulo: "Exame anulado", texto: `O exame foi encerrado automaticamente porque atingiu ${(t.incidentes || []).length} incidentes de segurança (sair do ecrã inteiro, mudar de aba, etc.). Pode pedir a 2.ª via e, na próxima tentativa, manter-se no ecrã do exame até ao fim.` };
+    else if (nota >= 18) nivel = { cor: "#1d6b2e", fundo: "#e6f6ea", icone: "bi-trophy-fill", titulo: "Excelente!", texto: `Obteve ${n} valores. Desempenho de topo — está muito bem preparado(a). Continue a treinar para manter o nível.` };
     else if (nota >= 14) nivel = { cor: "#1d6b2e", fundo: "#e6f6ea", icone: "bi-stars", titulo: "Muito bom!", texto: `Obteve ${n} valores. Está no bom caminho; reveja as áreas com menos acertos para chegar ao topo.` };
     else if (nota >= 10) nivel = { cor: "#0f5f86", fundo: "#e3f4fb", icone: "bi-patch-check-fill", titulo: "Aprovado!", texto: `Obteve ${n} valores e passou a fasquia dos 10.` + (t.tipo === "psico" ? " Já pode avançar para a Aferição de Conhecimentos." : " Reforce as áreas mais fracas para subir na classificação.") };
     else nivel = { cor: "#8a0b20", fundo: "#fde8eb", icone: "bi-emoji-frown-fill", titulo: "Não desista!", texto: `Obteve ${n} valores, abaixo dos 10. Veja o desempenho por área, estude os pontos fracos e peça a 2.ª via do teste para tentar de novo.` };
 
-    const texto = nota >= 10
+    const texto = nota >= 10 && !t.anulado
       ? `Tirei ${n} valores no ${TIPOS[t.tipo].nome} da ${cfg.NOME_PLATAFORMA}! 📚 Treina também, de graça, para os concursos públicos (ENAPP, MININT e outros):`
       : `Estou a treinar para os concursos públicos (ENAPP, MININT e outros) na ${cfg.NOME_PLATAFORMA}. Testes cronometrados e grátis — treina também:`;
     const meu = perfil && t.user_id === perfil.id;
@@ -306,7 +351,7 @@
       </div>
       <div class="modal-body p-4">
         <p class="mb-3">${nivel.texto}</p>
-        ${meu && nota < 10 ? `<button class="btn btn-whats w-100 mb-3" data-segunda><i class="bi bi-whatsapp me-1"></i> Solicitar 2.ª via do teste</button>` : ""}
+        ${meu && (nota < 10 || t.anulado) ? `<button class="btn btn-whats w-100 mb-3" data-segunda><i class="bi bi-whatsapp me-1"></i> Solicitar 2.ª via do teste</button>` : ""}
         <h6 class="titulo upper mb-2"><i class="bi bi-share me-1"></i> Partilhe a plataforma com os amigos</h6>
         ${botoesPartilha(texto)}
       </div>
@@ -317,7 +362,7 @@
     const m = new bootstrap.Modal(el);
     ligarPartilha(el, texto);
     const bt = el.querySelector("[data-segunda]");
-    if (bt) bt.addEventListener("click", () => { m.hide(); pedirSegundaVia({ perfil, tipo: t.tipo, nota: t.nota }); });
+    if (bt) bt.addEventListener("click", () => { m.hide(); pedirSegundaVia({ perfil, tipo: t.tipo }); });
     el.addEventListener("hidden.bs.modal", () => el.remove());
     m.show();
   }

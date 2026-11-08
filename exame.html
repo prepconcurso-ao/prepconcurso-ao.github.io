@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link href="css/estilo.css?v=7" rel="stylesheet">
+  <link href="css/estilo.css?v=8" rel="stylesheet">
 </head>
 <body>
   <div class="faixa"></div>
@@ -24,8 +24,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=7"></script>
-  <script src="js/app.js?v=7"></script>
+  <script src="js/config.js?v=8"></script>
+  <script src="js/app.js?v=8"></script>
   <script>
   (async () => {
     const { sb, esc, toast, erroMsg, fmtHMS, TIPOS } = App;
@@ -42,8 +42,47 @@
         <p class="text-muted-2">${esc(msg)}</p><a class="btn btn-navy" href="painel.html">Voltar ao painel</a></div></div>`;
     }
 
+    // ---------------- Ecrã inteiro obrigatório ----------------
+    const FS_OK = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+    const emFS = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+    async function entrarFS() {
+      if (!FS_OK) return true;
+      try {
+        const el = document.documentElement;
+        await (el.requestFullscreen ? el.requestFullscreen({ navigationUI: "hide" }) : el.webkitRequestFullscreen());
+        if (navigator.keyboard && navigator.keyboard.lock) navigator.keyboard.lock().catch(() => {});
+      } catch (e) { /* recusado pelo utilizador */ }
+      return emFS();
+    }
+
+    await new Promise(resolve => {
+      app.innerHTML = `<div class="container py-5" style="max-width:720px"><div class="cartao p-4 p-md-5">
+        <span class="etiqueta">${TIPOS[tipo].nome}</span>
+        <h2 class="upper mb-3"><i class="bi bi-shield-lock me-1"></i> Regras do exame</h2>
+        <p>O exame decorre em <b>ecrã inteiro</b> e é vigiado durante todo o tempo. Conta como <b>incidente</b>:</p>
+        <ul class="mb-3">
+          <li>sair do ecrã inteiro (tecla Esc, F11 ou outra);</li>
+          <li>mudar de aba, abrir outra janela ou aplicação, ou minimizar o navegador;</li>
+          <li>reduzir a janela ou usar vista dividida;</li>
+          <li>tentar capturar o ecrã, copiar ou colar texto;</li>
+          <li>recarregar ou reabrir a página do exame.</li>
+        </ul>
+        <div class="alert alert-danger small"><i class="bi bi-exclamation-octagon me-1"></i>
+          Cada incidente mostra um aviso. Ao <b>3.º incidente</b> o exame é <b>encerrado automaticamente e anulado (nota 0)</b>.</div>
+        ${FS_OK ? "" : `<div class="alert alert-warning small"><i class="bi bi-phone me-1"></i> Este dispositivo não permite ecrã inteiro. A saída da página continua a ser vigiada.</div>`}
+        <p class="small text-muted-2">O cronómetro só começa quando carregar no botão. Feche outras aplicações e garanta uma boa ligação à Internet.</p>
+        <button class="btn btn-cyan w-100 py-3 fs-5" id="btnComecar"><i class="bi bi-arrows-fullscreen me-1"></i> Entrar em ecrã inteiro e começar</button>
+        <a class="btn btn-link w-100 mt-2" href="painel.html">Voltar ao painel</a>
+      </div></div>`;
+      document.getElementById("btnComecar").onclick = async () => {
+        if (await entrarFS() || !FS_OK) resolve();
+        else toast("Para começar, aceite o modo de ecrã inteiro.", "aviso");
+      };
+    });
+    app.innerHTML = `<div class="carregar"><div class="text-center"><div class="spinner-border text-primary mb-3"></div><div>A preparar o seu exame…</div></div></div>`;
+
     const { data: pacote, error } = await sb.rpc("iniciar_exame", { p_tipo: tipo, p_n: nPedido });
-    if (error) return erroFatal(erroMsg(error));
+    if (error) { if (emFS()) document.exitFullscreen?.().catch(() => {}); return erroFatal(erroMsg(error)); }
 
     const Q = pacote.questoes;
     const chaveLocal = "prep_resp_" + pacote.tentativa_id;
@@ -64,6 +103,7 @@
             <div style="min-width:0"><div class="titulo text-white upper text-truncate" style="font-size:1.2rem;line-height:1">${TIPOS[tipo].nome}</div>
             <div class="small text-truncate" style="color:#b9d4f2">${esc(perfil.nome)} · ${esc(perfil.codigo)}</div></div></div>
           <div class="text-end small d-none d-md-block" style="color:#b9d4f2">Respondidas<br><b class="text-white fs-6" id="contResp">0/${Q.length}</b></div>
+          <span class="chip chip-ok d-none d-sm-inline-flex" id="chipInc" title="Incidentes de segurança"><i class="bi bi-shield-check"></i> <span>0/3</span></span>
           <div class="cronometro" id="crono" aria-live="polite">--:--:--</div>
         </div>
         <div class="progresso-fino"><div id="barraProg" style="width:0%"></div></div>
@@ -186,6 +226,7 @@
         const { data, error } = await sb.rpc("submeter_exame", { p_tentativa: pacote.tentativa_id, p_respostas: respostas });
         if (!error) {
           localStorage.removeItem(chaveLocal); localStorage.removeItem(chaveMarcadas);
+          if (emFS()) await document.exitFullscreen?.().catch(() => {});
           location.replace(`relatorio.html?id=${data.id}&novo=1`);
           return;
         }
@@ -223,9 +264,100 @@
     setInterval(guardarServidor, 30000);
 
     window.addEventListener("beforeunload", e => { if (!submetido) { guardarLocal(); e.preventDefault(); e.returnValue = ""; } });
-    document.addEventListener("visibilitychange", () => { if (document.hidden) guardarServidor(); });
-    document.addEventListener("contextmenu", e => e.preventDefault());
-    document.addEventListener("copy", e => e.preventDefault());
+
+    // ---------------- Vigilância anti-fraude ----------------
+    const LIMITE = pacote.limite_incidentes || 3;
+    let incidentes = pacote.incidentes || 0, ultimoInc = 0, encerrando = false;
+    const NOMES = {
+      saiu_ecra_inteiro: "Saiu do ecrã inteiro",
+      mudou_aba: "Mudou de aba ou minimizou o navegador",
+      perdeu_foco: "Abriu outra janela ou aplicação",
+      vista_dividida: "Reduziu a janela ou usou vista dividida",
+      captura_ecra: "Tentou capturar o ecrã",
+      reabriu_exame: "Recarregou ou reabriu o exame"
+    };
+    document.body.classList.add("exame-protegido");
+    const aviso = document.createElement("div");
+    aviso.id = "avisoFraude"; aviso.className = "d-none";
+    document.body.appendChild(aviso);
+
+    function atualizarChip() {
+      const c = document.getElementById("chipInc");
+      c.querySelector("span").textContent = `${incidentes}/${LIMITE}`;
+      c.className = `chip d-none d-sm-inline-flex ${incidentes === 0 ? "chip-ok" : incidentes < LIMITE - 1 ? "chip-warn" : "chip-bad"}`;
+    }
+
+    function mostrarAviso(tipo) {
+      document.body.classList.add("bloqueado");
+      aviso.className = "";
+      aviso.innerHTML = `<div class="cartao p-4 p-md-5 text-center" style="max-width:520px">
+        <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size:3rem"></i>
+        <h3 class="upper mt-2 mb-1">Aviso ${incidentes} de ${LIMITE}</h3>
+        <p class="fw-semibold mb-2">${esc(NOMES[tipo] || "Comportamento não permitido")}</p>
+        <p class="small text-muted-2 mb-4">${incidentes >= LIMITE - 1
+          ? "<b class='text-danger'>Último aviso:</b> no próximo incidente o exame é encerrado e anulado."
+          : `Ao ${LIMITE}.º incidente o exame é encerrado e anulado. O cronómetro continua a contar.`}</p>
+        <button class="btn btn-cyan w-100 py-2" id="btnVoltarExame"><i class="bi bi-arrows-fullscreen me-1"></i> Voltar ao exame</button>
+      </div>`;
+      document.getElementById("btnVoltarExame").onclick = async () => {
+        if (await entrarFS() || !FS_OK) { aviso.className = "d-none"; document.body.classList.remove("bloqueado"); }
+        else toast("Volte ao ecrã inteiro para continuar.", "aviso");
+      };
+    }
+
+    async function encerrarPorFraude() {
+      if (encerrando) return;
+      encerrando = submetido = true;
+      clearInterval(tCrono);
+      localStorage.removeItem(chaveLocal); localStorage.removeItem(chaveMarcadas);
+      document.body.classList.add("bloqueado");
+      aviso.className = "";
+      aviso.innerHTML = `<div class="cartao p-4 p-md-5 text-center" style="max-width:520px">
+        <i class="bi bi-x-octagon-fill text-danger" style="font-size:3rem"></i>
+        <h3 class="upper mt-2">Exame encerrado</h3>
+        <p class="mb-0">Atingiu ${LIMITE} incidentes de segurança. O exame foi submetido e <b>anulado</b>.</p></div>`;
+      setTimeout(() => { document.exitFullscreen?.().catch(() => {}); location.replace(`relatorio.html?id=${pacote.tentativa_id}&novo=1`); }, 3000);
+    }
+
+    async function incidente(tipo) {
+      if (submetido || encerrando) return;
+      const agora = Date.now();
+      if (agora - ultimoInc < 3000) return;         // vários eventos do mesmo gesto contam uma vez
+      ultimoInc = agora;
+      incidentes++; atualizarChip(); mostrarAviso(tipo); guardarLocal();
+      for (let k = 0; k < 3; k++) {
+        const { data, error } = await sb.rpc("registar_incidente", { p_tentativa: pacote.tentativa_id, p_tipo: tipo, p_respostas: respostas });
+        if (!error && data) { incidentes = data.total; atualizarChip(); if (data.encerrado) encerrarPorFraude(); return; }
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    }
+
+    let base = { w: window.innerWidth, h: window.innerHeight, deitado: window.innerWidth > window.innerHeight };
+    document.addEventListener("fullscreenchange", () => { if (FS_OK && !emFS()) incidente("saiu_ecra_inteiro"); });
+    document.addEventListener("webkitfullscreenchange", () => { if (FS_OK && !emFS()) incidente("saiu_ecra_inteiro"); });
+    document.addEventListener("visibilitychange", () => { if (document.hidden) { guardarServidor(); incidente("mudou_aba"); } });
+    window.addEventListener("blur", () => setTimeout(() => { if (!document.hidden && !document.hasFocus()) incidente("perdeu_foco"); }, 400));
+    window.addEventListener("resize", () => {
+      if (FS_OK && !emFS()) return;                   // já contado como saída do ecrã inteiro
+      const deitado = window.innerWidth > window.innerHeight;
+      if (deitado !== base.deitado) { base = { w: window.innerWidth, h: window.innerHeight, deitado }; return; }   // rodar o telemóvel não conta
+      if (window.innerWidth < base.w * 0.85 || window.innerHeight < base.h * 0.7) incidente("vista_dividida");
+    });
+    ["contextmenu", "copy", "cut", "paste", "selectstart", "dragstart", "drop"].forEach(ev =>
+      document.addEventListener(ev, e => { if (!e.target.closest || !e.target.closest("input, textarea")) e.preventDefault(); }));
+    document.addEventListener("keydown", e => {
+      const k = e.key.toLowerCase(), ctrl = e.ctrlKey || e.metaKey;
+      if (e.key === "F12" || e.key === "F5" || (ctrl && ["c", "x", "v", "a", "p", "s", "u", "r", "f", "t", "n", "w"].includes(k)) ||
+          (ctrl && e.shiftKey && ["i", "j", "c"].includes(k))) { e.preventDefault(); e.stopPropagation(); }
+    }, true);
+    document.addEventListener("keyup", e => {
+      if (e.key === "PrintScreen") { navigator.clipboard?.writeText("").catch(() => {}); incidente("captura_ecra"); }
+    });
+
+    atualizarChip();
+    if (incidentes > 0) toast(`Atenção: este exame já tem ${incidentes} incidente(s) de segurança.`, "aviso");
+    // reabrir/recarregar um exame já começado conta como incidente
+    if ((Date.now() + desvio) - Date.parse(pacote.iniciado_em) > 20000) incidente("reabriu_exame");
 
     render();
   })();

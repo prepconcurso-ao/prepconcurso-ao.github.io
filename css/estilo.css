@@ -240,3 +240,13 @@ h1, h2, h3, h4, .titulo { font-family: var(--font-head); font-weight: 700; lette
 .btn-partilha i { font-size: 1.45rem; }
 .btn-partilha:hover { background: var(--cor); color: #fff; transform: translateY(-2px); }
 @media (max-width: 400px) { .grelha-partilha { grid-template-columns: repeat(4, 1fr); gap: .35rem; } .btn-partilha span { font-size: .66rem; } }
+
+/* =====================================================================
+   Exame protegido (anti-fraude)
+   ===================================================================== */
+body.exame-protegido { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+body.bloqueado main, body.bloqueado .barra-exame .container > div:first-child { filter: blur(14px); pointer-events: none; }
+#avisoFraude { position: fixed; inset: 0; z-index: 2500; background: rgba(14, 35, 80, .92); display: grid; place-items: center; padding: 1rem; }
+#avisoFraude.d-none { display: none !important; }
+@media print { body.exame-protegido * { display: none !important; } body.exame-protegido::after { content: "Impressão não permitida durante o exame."; display: block; } }
+.previa-msg { white-space: pre-wrap; font-family: var(--font-body); font-size: .85rem; background: #e7f8ec; border: 1px solid #bfe9cc; border-radius: 10px; padding: .75rem .9rem; max-height: 240px; overflow: auto; margin: 0; color: #0b2a14; }

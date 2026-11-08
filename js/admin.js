@@ -122,7 +122,7 @@
 
   // ------------------------------------------------------------------ RESULTADOS
   async function carregarResultados() {
-    let q = sb.from("tentativas").select("id, tipo, n_questoes, acertos, respondidas, nota, tempo_seg, submetido_em, perfis(nome, codigo, contacto, email, categorias(nome)), categorias(nome)")
+    let q = sb.from("tentativas").select("id, tipo, n_questoes, acertos, respondidas, nota, tempo_seg, submetido_em, anulado, incidentes, perfis(nome, codigo, contacto, email, categorias(nome)), categorias(nome)")
       .eq("estado", "submetido").order("submetido_em", { ascending: false }).limit(1000);
     if ($("fRes").value) q = q.eq("tipo", $("fRes").value);
     const { data, error } = await q;
@@ -134,15 +134,16 @@
         <td>${TIPOS[t.tipo].curto}</td>
         <td class="small">${esc(t.categorias?.nome || t.perfis?.categorias?.nome || "—")}</td>
         <td>${t.acertos}/${t.n_questoes}</td><td>${fmtHMS(t.tempo_seg)}</td>
-        <td><span class="chip ${t.nota >= 10 ? "chip-ok" : "chip-bad"}">${fmtNota(t.nota)}</span></td>
+        <td><span class="chip ${t.nota >= 10 ? "chip-ok" : "chip-bad"}">${fmtNota(t.nota)}</span>
+          ${t.anulado ? `<div><span class="chip chip-bad mt-1">anulado</span></div>` : (t.incidentes || []).length ? `<div class="small text-warning mt-1"><i class="bi bi-shield-exclamation"></i> ${t.incidentes.length} incidente(s)</div>` : ""}</td>
         <td class="text-end"><a class="btn btn-sm btn-light border" href="relatorio.html?id=${t.id}" target="_blank">Relatório</a></td>
       </tr>`).join("") : `<tr><td colspan="8" class="text-muted-2 text-center py-4">Sem resultados.</td></tr>`;
   }
   $("fRes").onchange = carregarResultados;
   $("btnCsv").onclick = () => {
-    const linhas = [["data", "codigo", "candidato", "contacto", "teste", "categoria", "questoes", "respondidas", "acertos", "tempo", "nota"]];
+    const linhas = [["data", "codigo", "candidato", "contacto", "teste", "categoria", "questoes", "respondidas", "acertos", "tempo", "nota", "incidentes", "anulado"]];
     resultados.forEach(t => linhas.push([fmtData(t.submetido_em), t.perfis?.codigo, t.perfis?.nome, t.perfis?.email || t.perfis?.contacto,
-      TIPOS[t.tipo].nome, t.categorias?.nome || t.perfis?.categorias?.nome || "", t.n_questoes, t.respondidas, t.acertos, fmtHMS(t.tempo_seg), fmtNota(t.nota)]));
+      TIPOS[t.tipo].nome, t.categorias?.nome || t.perfis?.categorias?.nome || "", t.n_questoes, t.respondidas, t.acertos, fmtHMS(t.tempo_seg), fmtNota(t.nota), (t.incidentes || []).length, t.anulado ? "sim" : "não"]));
     const csv = "﻿" + linhas.map(l => l.map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(";")).join("\r\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
