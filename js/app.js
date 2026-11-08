@@ -72,8 +72,8 @@
   function erroMsg(e) {
     const m = (e && (e.message || e.error_description || e.msg)) || String(e || "Erro desconhecido");
     const mapa = [
-      [/Invalid login credentials/i, "Dados de acesso incorretos. Verifique o e-mail/telefone e a senha."],
-      [/User already registered/i, "Já existe uma conta com este e-mail ou telefone."],
+      [/Invalid login credentials/i, "Dados de acesso incorretos. Verifique o número de WhatsApp e a senha."],
+      [/User already registered/i, "Já existe uma conta com este número de WhatsApp. Use o separador Entrar."],
       [/Password should be at least/i, "A senha deve ter pelo menos 6 caracteres."],
       [/Email not confirmed/i, "Confirme o seu e-mail antes de entrar (verifique a caixa de entrada)."],
       [/Unable to validate email|invalid format|is invalid/i, "E-mail ou telefone inválido."],
@@ -322,10 +322,50 @@
     m.show();
   }
 
+  // ------------------------------------------------------------------
+  //  Primeiro acesso: o candidato indica o nome e a categoria
+  // ------------------------------------------------------------------
+  const perfilIncompleto = p => !p.is_admin && (!p.categoria_id || !p.nome || p.nome === "Candidato");
+
+  async function completarPerfil(perfil) {
+    const { data: cats } = await sb.from("categorias").select("id, nome").eq("ativo", true).order("nome");
+    return new Promise(resolve => {
+      const wrap = document.createElement("div");
+      wrap.innerHTML = `<div class="modal fade" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false"><div class="modal-dialog modal-dialog-centered"><form class="modal-content" style="border-radius:16px">
+        <div class="modal-header border-0 pb-0"><h5 class="modal-title titulo"><i class="bi bi-person-check me-1"></i> Complete o seu perfil</h5></div>
+        <div class="modal-body">
+          <p class="small text-muted-2">Falta só isto para começar. O nome aparece no relatório do exame e a categoria define as questões da aferição de conhecimentos.</p>
+          <label class="form-label" for="cpNome">Nome completo</label>
+          <input class="form-control mb-3" id="cpNome" autocomplete="name" maxlength="120" value="${perfil.nome && perfil.nome !== "Candidato" ? esc(perfil.nome) : ""}" placeholder="Nome e apelido">
+          <label class="form-label" for="cpCat">Categoria / área do concurso</label>
+          <select class="form-select" id="cpCat"><option value="">Escolha a categoria…</option>
+            ${(cats || []).map(c => `<option value="${c.id}" ${c.id === perfil.categoria_id ? "selected" : ""}>${esc(c.nome)}</option>`).join("")}</select>
+        </div>
+        <div class="modal-footer border-0 pt-0"><button class="btn btn-navy w-100" type="submit"><i class="bi bi-check2 me-1"></i> Guardar e continuar</button></div>
+      </form></div></div>`;
+      const el = wrap.firstElementChild;
+      document.body.appendChild(el);
+      const m = new bootstrap.Modal(el);
+      el.querySelector("form").addEventListener("submit", async ev => {
+        ev.preventDefault();
+        const nome = el.querySelector("#cpNome").value.trim().replace(/\s+/g, " ");
+        const cat = Number(el.querySelector("#cpCat").value);
+        if (nome.split(" ").length < 2) return toast("Indique o nome completo (nome e apelido).", "aviso");
+        if (!cat) return toast("Escolha a categoria.", "aviso");
+        const b = el.querySelector("button[type=submit]"); b.disabled = true;
+        const { error } = await sb.rpc("completar_perfil", { p_nome: nome, p_categoria: cat });
+        b.disabled = false;
+        if (error) return toast(erroMsg(error), "erro");
+        m.hide(); el.addEventListener("hidden.bs.modal", () => { el.remove(); resolve(); }, { once: true });
+      });
+      m.show();
+    });
+  }
+
   window.App = {
     sb, cfg, configurado, TIPOS, AREAS_PSICO, LOGO,
     esc, loginParaEmail, fmtHMS, fmtData, fmtNota, erroMsg, toast, confirmar,
     perfilAtual, exigirSessao, sair, renderTopo, renderRodape, renderAvisoConfig,
-    normalizarWhats, fmtWhats, linkWhatsAppApoio, botoesPartilha, ligarPartilha, pedirSegundaVia, mostrarResultado
+    normalizarWhats, fmtWhats, linkWhatsAppApoio, perfilIncompleto, completarPerfil, botoesPartilha, ligarPartilha, pedirSegundaVia, mostrarResultado
   };
 })();

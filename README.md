@@ -13,7 +13,7 @@ Plataforma web para preparação de candidatos a concursos públicos, com **Test
 
 | Regra | Implementação |
 |---|---|
-| Cadastro com nome, senha, **número de WhatsApp** e categoria | `index.html` + gatilho `criar_perfil_novo_utilizador` |
+| Cadastro só com **número de WhatsApp e senha**; nome e categoria pedidos no primeiro acesso (`supabase/07_completar_perfil.sql`) | `index.html` + gatilho `criar_perfil_novo_utilizador` |
 | Cada candidato só faz **um** teste de cada etapa | `iniciar_exame` verifica as tentativas usadas |
 | Mais tentativas só com **aprovação do administrador** | Candidato pede em `painel.html`; admin aprova em `admin.html` |
 | Escolha de **25 a 50 questões**, **1 minuto por questão** | Barra deslizante no painel; tempo controlado pelo servidor |
