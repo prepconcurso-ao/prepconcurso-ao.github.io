@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Ranking MININT — PrepConcurso AO</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;height:100%;background:#0e2350;overflow:hidden}
+  body{display:flex;align-items:center;justify-content:center}
+  .p{position:relative;flex:0 0 auto;width:1080px;height:1150px;box-sizing:border-box;padding:46px 64px 40px;display:flex;flex-direction:column;
+     font-family:Barlow,Arial,sans-serif;color:#fff;transform-origin:center;overflow:hidden;
+     background:radial-gradient(circle at 104% -6%,#1d4a94 0 30%,transparent 30.2%),linear-gradient(160deg,#0e2350,#132e66)}
+  .faixa{position:absolute;left:0;right:0;top:0;height:18px;background:linear-gradient(90deg,#c8102e 0 33.3%,#111 33.3% 66.6%,#f2c10f 66.6%)}
+  .C{font-family:'Barlow Condensed','Arial Narrow',sans-serif}
+  .topo{display:flex;align-items:center;gap:16px}
+  .marca{font:700 34px 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.06em;color:#18b2e5}
+  .tag{background:#c8102e;font-weight:700;font-size:22px;letter-spacing:.1em;padding:5px 16px;border-radius:99px}
+  h1{font:700 84px/0.95 'Barlow Condensed','Arial Narrow',sans-serif;margin:20px 0 0;text-transform:uppercase}
+  h1 span{color:#f2c10f}
+  .sub{display:flex;align-items:center;gap:18px;margin:20px 0 22px}
+  .sub .n{font:700 76px/1 'Barlow Condensed','Arial Narrow',sans-serif;color:#0e2350;background:#f2c10f;border-radius:16px;padding:8px 20px}
+  .sub div{font-size:28px;font-weight:600;color:#d5def0;line-height:1.25}
+  .sub b{color:#fff}
+  .moldura{position:relative;align-self:center;line-height:0;background:#fff;border-radius:18px;padding:6px;border:6px solid #f2c10f;box-shadow:0 16px 36px rgba(0,0,0,.45);transform:rotate(-1deg)}
+  .moldura img{display:block;width:860px;height:auto;border-radius:12px}
+  .selo{position:absolute;right:-20px;top:-26px;background:#c8102e;color:#fff;font:700 28px 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.04em;padding:8px 18px;border-radius:99px;transform:rotate(5deg);box-shadow:0 6px 14px rgba(0,0,0,.35);line-height:1.1}
+  .pergunta{margin:30px 0 0;text-align:center;font:700 46px/1.05 'Barlow Condensed','Arial Narrow',sans-serif;text-transform:uppercase}
+  .pergunta span{color:#f2c10f}
+  .cta{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:20px}
+  .cta .t{font-size:23px;color:#c9d6ee;line-height:1.4}
+  .cta .t b{color:#fff}
+  .url{background:#f2c10f;color:#0e2350;font:700 44px 'Barlow Condensed','Arial Narrow',sans-serif;padding:12px 26px;border-radius:14px;white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="p" id="cartaz">
+  <div class="faixa"></div>
+  <div class="topo"><span class="marca">PREPCONCURSO AO</span><span class="tag">🏆 NOVO: RANKING SEMANAL</span></div>
+  <h1>Todo mundo já está a praticar<br>para o exame do <span>MININT!</span></h1>
+  <div class="sub"><span class="n">+35</span><div>candidatos fizeram a <b>prova escrita MININT</b><br>na plataforma <b>só esta semana</b>.</div></div>
+  <div class="moldura"><span class="selo">AO VIVO 🔴</span><img src="img/ranking-minint.png" alt="Ranking semanal da Prova Escrita MININT"></div>
+  <div class="pergunta">E tu? Já estás no ranking?<br><span>Vem bater o 19,2! 💪</span></div>
+  <div class="cta">
+    <div class="t"><b>Grátis · sem psicotécnico</b><br>SIC, Administração Pública, Lei de Bases,<br>Deontologia, História e muito mais</div>
+    <div class="url">prepconcurso-ao.github.io</div>
+  </div>
+</div>
+<script>
+  function ajustar(){ const s=Math.min(innerWidth/1080, innerHeight/1150); document.getElementById('cartaz').style.transform='scale('+s+')'; }
+  addEventListener('resize', ajustar); ajustar();
+</script>
+</body>
+</html>
