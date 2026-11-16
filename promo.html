@@ -7,49 +7,74 @@
 <title>Prova Escrita MININT — PrepConcurso AO</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-  html,body{margin:0;height:100%;background:#0e2350;font-family:Barlow,Arial,sans-serif;color:#fff;overflow:hidden}
-  .p{position:relative;width:100vw;height:100vh;box-sizing:border-box;padding:4.2vh 6vw 3vh;display:flex;flex-direction:column;
-     background:radial-gradient(circle at 105% -5%,#1d4a94 0 34%,transparent 35%),linear-gradient(160deg,#0e2350,#132e66)}
-  .faixa{position:absolute;left:0;right:0;top:0;height:1.6vh;background:linear-gradient(90deg,#c8102e 0 33.3%,#111 33.3% 66.6%,#f2c10f 66.6%)}
-  .marca{font:700 3.3vh 'Barlow Condensed';letter-spacing:.06em;color:#18b2e5}
-  .novo{display:inline-block;background:#c8102e;font-weight:700;font-size:2.3vh;letter-spacing:.12em;padding:.4vh 1.6vh;border-radius:99px;margin:1.4vh 0 .8vh}
-  h1{font:700 7.2vh/0.95 'Barlow Condensed';margin:0;text-transform:uppercase}
+  /* Cartaz desenhado numa tela fixa de 1080 × 1150 px, escalada para caber no ecrã */
+  html,body{margin:0;height:100%;background:#0e2350;overflow:hidden}
+  body{display:flex;align-items:center;justify-content:center}
+  .p{position:relative;flex:0 0 auto;width:1080px;height:1150px;box-sizing:border-box;padding:46px 64px 40px;display:flex;flex-direction:column;
+     font-family:Barlow,Arial,sans-serif;color:#fff;transform-origin:center;
+     background:radial-gradient(circle at 104% -6%,#1d4a94 0 30%,transparent 30.2%),linear-gradient(160deg,#0e2350,#132e66)}
+  .faixa{position:absolute;left:0;right:0;top:0;height:18px;background:linear-gradient(90deg,#c8102e 0 33.3%,#111 33.3% 66.6%,#f2c10f 66.6%)}
+  .topo{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .marca{font:700 34px 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.06em;color:#18b2e5}
+  .novo{background:#c8102e;font-weight:700;font-size:22px;letter-spacing:.1em;padding:5px 16px;border-radius:99px}
+  h1{font:700 90px/0.94 'Barlow Condensed','Arial Narrow',sans-serif;margin:16px 0 0;text-transform:uppercase;white-space:nowrap}
   h1 span{color:#f2c10f}
-  .livre{margin:1.2vh 0 1.4vh;font-size:2.9vh;font-weight:600;color:#d5def0}
-  .livre b{color:#fff;background:#1d6b2e;padding:.2vh 1vh;border-radius:6px}
-  ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:1.3vh 2.4vw}
-  li{background:rgba(255,255,255,.08);border-left:.6vh solid #18b2e5;border-radius:8px;padding:.9vh 1.3vh;font-size:2.35vh;font-weight:600}
-  .prova{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:2vh 0 1.4vh;gap:2.4vh}
-  .prova .rotulo{font:700 2.6vh 'Barlow Condensed';letter-spacing:.06em;text-transform:uppercase;color:#f2c10f}
-  .prova .moldura{position:relative;flex:0 0 auto;line-height:0;background:#fff;border-radius:12px;padding:.8vh;box-shadow:0 1.2vh 3vh rgba(0,0,0,.35);transform:rotate(-1.2deg);border:.4vh solid #f2c10f}
-  .prova img{display:block;height:27vh;width:auto;max-width:78vw;object-fit:contain;border-radius:8px}
-  .prova .selo{position:absolute;right:-1.4vh;top:-1.8vh;background:#1d6b2e;color:#fff;font:700 2.1vh 'Barlow Condensed';letter-spacing:.05em;padding:.5vh 1.3vh;border-radius:99px;transform:rotate(4deg);box-shadow:0 .5vh 1.2vh rgba(0,0,0,.3)}
-  .rodape{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:2vw;flex-wrap:wrap}
-  .extra{font-size:2.3vh;color:#c9d6ee;line-height:1.45}
-  .url{background:#f2c10f;color:#0e2350;font:700 3.6vh 'Barlow Condensed';padding:1.2vh 2.2vh;border-radius:12px;white-space:nowrap}
+  .livre{margin:14px 0 22px;font-size:30px;font-weight:600;color:#d5def0}
+  .livre b{color:#fff;background:#1d6b2e;padding:2px 12px;border-radius:8px}
+  ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:12px 18px}
+  li{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.08);border-left:7px solid #18b2e5;border-radius:10px;padding:11px 14px;font-size:24px;font-weight:600;line-height:1.15}
+  li.novo-t{border-left-color:#f2c10f;background:rgba(242,193,15,.12)}
+  li .e{font-size:28px;flex:0 0 auto}
+  li small{display:block;font-size:17px;font-weight:600;color:#f2c10f;letter-spacing:.04em}
+  .meio{flex:1 0 auto;display:flex;align-items:center;justify-content:center;gap:34px;margin:26px 0 22px}
+  .rotulo{font:700 34px/1.05 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.03em;text-transform:uppercase;color:#f2c10f;max-width:300px}
+  .rotulo span{display:block;color:#fff;font-size:24px;letter-spacing:.02em;text-transform:none;font-family:Barlow,Arial,sans-serif;font-weight:600;margin-top:8px;line-height:1.25}
+  .moldura{position:relative;line-height:0;background:#fff;border-radius:14px;padding:8px;box-shadow:0 14px 34px rgba(0,0,0,.4);transform:rotate(-1.5deg);border:5px solid #f2c10f}
+  .moldura img{display:block;height:230px;width:auto;border-radius:9px}
+  .selo{position:absolute;right:-18px;top:-22px;background:#1d6b2e;color:#fff;font:700 24px 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.05em;padding:6px 16px;border-radius:99px;transform:rotate(4deg);box-shadow:0 6px 14px rgba(0,0,0,.3)}
+  .rodape{display:flex;align-items:center;justify-content:space-between;gap:20px}
+  .extra{font-size:22px;color:#c9d6ee;line-height:1.45}
+  .url{background:#f2c10f;color:#0e2350;font:700 42px 'Barlow Condensed','Arial Narrow',sans-serif;padding:12px 26px;border-radius:14px;white-space:nowrap}
+  .anuncie{margin-top:20px;display:flex;align-items:center;gap:16px;background:#fff;color:#0e2350;border-radius:14px;padding:14px 20px}
+  .anuncie .ic{font-size:38px}
+  .anuncie b{font:700 28px 'Barlow Condensed','Arial Narrow',sans-serif;text-transform:uppercase;letter-spacing:.02em;color:#c8102e}
+  .anuncie div{font-size:21px;font-weight:600;line-height:1.3}
+  .anuncie .tel{margin-left:auto;background:#25d366;color:#fff;font:700 28px 'Barlow Condensed','Arial Narrow',sans-serif;padding:8px 16px;border-radius:10px;white-space:nowrap}
 </style>
 </head>
 <body>
-<div class="p">
+<div class="p" id="cartaz">
   <div class="faixa"></div>
-  <div class="marca">PREPCONCURSO AO</div>
-  <div><span class="novo">NOVO · GRÁTIS</span></div>
+  <div class="topo"><span class="marca">PREPCONCURSO AO</span><span class="novo">+68 NOVAS QUESTÕES · GRÁTIS</span></div>
   <h1>Prova Escrita <span>MININT</span><br>teste de preparação</h1>
-  <div class="livre">Acesso livre — <b>sem psicotécnico</b></div>
+  <div class="livre">Acesso livre — <b>sem psicotécnico</b> · 1 minuto por questão</div>
   <ul>
-    <li>Lei de Bases da Função Pública</li>
-    <li>Pauta deontológica</li>
-    <li>Constituição e organização do MININT</li>
-    <li>Cultura geral e comportamento</li>
+    <li class="novo-t"><span class="e">🔎</span><div><small>NOVO</small>SIC — Investigação Criminal</div></li>
+    <li class="novo-t"><span class="e">🏛️</span><div><small>NOVO</small>Noções de Administração Pública</div></li>
+    <li><span class="e">🛡️</span><div>Organização do MININT</div></li>
+    <li><span class="e">🗺️</span><div>Organização Política e Administrativa</div></li>
+    <li><span class="e">📘</span><div>Lei de Bases da Função Pública</div></li>
+    <li><span class="e">⚖️</span><div>Pauta Deontológica e Ética</div></li>
+    <li><span class="e">📜</span><div>História de Angola</div></li>
+    <li><span class="e">🇦🇴</span><div>Patriotismo e Símbolos Nacionais</div></li>
   </ul>
-  <div class="prova">
-    <div class="rotulo">Psicotécnico aprovado? Agora é a prova escrita 👇</div>
+  <div class="meio">
+    <div class="rotulo">Psicotécnico aprovado? 👉<span>Agora é a prova escrita. Treine já e chegue lá com vantagem.</span></div>
     <div class="moldura"><span class="selo">✔ APROVADO</span><img src="img/historico-fases-minint.png" alt="Histórico de fases: Psicotécnico aprovado com 10 valores"></div>
   </div>
   <div class="rodape">
-    <div class="extra">+ Psicotécnico e conhecimentos (CCL / ENAPP)<br>1 min por questão · relatório com nota</div>
+    <div class="extra">+ Psicotécnico e conhecimentos (CCL / ENAPP)<br>Relatório com nota no fim de cada teste</div>
     <div class="url">prepconcurso-ao.github.io</div>
   </div>
+  <div class="anuncie">
+    <span class="ic">📣</span>
+    <div><b>Tem um negócio? Anuncie aqui</b><br>Centros de formação, explicações, papelarias… planos desde 7 500 Kz</div>
+    <span class="tel">WhatsApp 938 791 898</span>
+  </div>
 </div>
+<script>
+  function ajustar(){ const s=Math.min(innerWidth/1080, innerHeight/1150); document.getElementById('cartaz').style.transform='scale('+s+')'; }
+  addEventListener('resize', ajustar); ajustar();
+</script>
 </body>
 </html>
