@@ -51,6 +51,26 @@
   }
 
   const URL_SITE = () => cfg.URL_PLATAFORMA || location.origin + "/";
+
+  // ---------------- Convites ----------------
+  // Quem chega por um link de convite (?ref=CÓDIGO) fica com o código guardado
+  // até criar conta / entrar; o painel regista-o depois (RPC registar_convite).
+  const CHAVE_REF = "prepRef";
+  try {
+    const ref = new URLSearchParams(location.search).get("ref");
+    if (ref && /^PREP-\d+-\d{4}$/i.test(ref.trim())) localStorage.setItem(CHAVE_REF, ref.trim().toUpperCase());
+  } catch {}
+  const refGuardado = () => { try { return localStorage.getItem(CHAVE_REF) || ""; } catch { return ""; } };
+  const linkConvite = perfil => perfil?.codigo ? `${URL_SITE()}?ref=${encodeURIComponent(perfil.codigo)}` : URL_SITE();
+
+  async function aplicarConvite(perfil) {
+    const ref = refGuardado();
+    if (!ref || !perfil || perfil.convidado_por) { if (perfil?.convidado_por) try { localStorage.removeItem(CHAVE_REF); } catch {} return; }
+    const { data, error } = await sb.rpc("registar_convite", { p_codigo: ref });
+    if (error) return;                       // erro de rede: tenta de novo na próxima visita
+    try { localStorage.removeItem(CHAVE_REF); } catch {}
+    if (data?.ok) toast(`Bem-vindo(a)! Foi convidado(a) por ${data.nome}. Bons estudos! 🎉`, "ok");
+  }
   const linkWhatsAppApoio = texto =>
     `https://wa.me/${cfg.WHATSAPP_INDICATIVO || "244"}${String(cfg.TELEFONE_APOIO || "").replace(/\D/g, "")}?text=${encodeURIComponent(texto)}`;
 
@@ -136,10 +156,12 @@
     if (!el) return;
     const links = perfil ? `
         <li class="nav-item"><a class="nav-link ${ativo === "painel" ? "active" : ""}" href="painel.html"><i class="bi bi-grid me-1"></i>Painel</a></li>
+        <li class="nav-item"><a class="nav-link ${ativo === "ranking" ? "active" : ""}" href="ranking.html"><i class="bi bi-trophy me-1"></i>Ranking</a></li>
         ${perfil.is_admin ? `<li class="nav-item"><a class="nav-link ${ativo === "admin" ? "active" : ""}" href="admin.html"><i class="bi bi-shield-lock me-1"></i>Administração</a></li>` : ""}
         <li class="nav-item ms-lg-3 my-2 my-lg-0"><span class="utilizador-chip"><i class="bi bi-person-circle me-1"></i>${esc(perfil.nome.split(" ")[0])} · ${esc(perfil.codigo)}</span></li>
         <li class="nav-item"><a class="nav-link" href="#" id="btnSair"><i class="bi bi-box-arrow-right me-1"></i>Sair</a></li>`
-      : `<li class="nav-item"><a class="nav-link" href="index.html#entrar">Entrar</a></li>`;
+      : `<li class="nav-item"><a class="nav-link ${ativo === "ranking" ? "active" : ""}" href="ranking.html"><i class="bi bi-trophy me-1"></i>Ranking</a></li>
+         <li class="nav-item"><a class="nav-link" href="index.html#entrar">Entrar</a></li>`;
     el.innerHTML = `
       <div class="faixa"></div>
       <nav class="navbar navbar-expand-lg topo navbar-dark">
@@ -195,16 +217,35 @@
 
 
   // ------------------------------------------------------------------
+  //  Ranking semanal (tabela usada no painel e na página do ranking)
+  // ------------------------------------------------------------------
+  function tabelaRanking(linhas, { vazio = "Sem resultados esta semana.", mostrarCategoria = false } = {}) {
+    if (!linhas || !linhas.length) return `<div class="text-muted-2 small py-2">${vazio}</div>`;
+    const medalha = p => p === 1 ? "🥇" : p === 2 ? "🥈" : p === 3 ? "🥉" : `${p}.º`;
+    let anterior = 0;
+    return `<div class="lista-ranking">${linhas.map(r => {
+      const salto = r.posicao - anterior > 1 && anterior > 0 ? `<div class="rk-salto">⋯</div>` : "";
+      anterior = r.posicao;
+      return `${salto}<div class="rk-linha ${r.meu ? "rk-eu" : ""} ${r.posicao <= 3 ? "rk-top" : ""}">
+        <span class="rk-pos">${medalha(r.posicao)}</span>
+        <span class="rk-nome">${esc(r.nome)}${r.meu ? ' <span class="chip chip-info ms-1">você</span>' : ""}
+          ${mostrarCategoria && r.categoria ? `<small class="d-block text-muted-2">${esc(r.categoria)}</small>` : ""}</span>
+        <span class="rk-tempo small text-muted-2"><i class="bi bi-stopwatch"></i> ${fmtHMS(r.tempo_seg)}</span>
+        <span class="rk-nota">${fmtNota(r.nota)}</span></div>`;
+    }).join("")}</div>`;
+  }
+
+  // ------------------------------------------------------------------
   //  Partilha nas redes sociais
   // ------------------------------------------------------------------
-  function botoesPartilha(texto) {
-    const url = URL_SITE();
+  function botoesPartilha(texto, url = URL_SITE()) {
     const t = encodeURIComponent(texto), u = encodeURIComponent(url), tu = encodeURIComponent(texto + " " + url);
     const b = (rede, cor, icone, nome, href) =>
       `<a class="btn-partilha" style="--cor:${cor}" data-rede="${rede}" ${href ? `href="${href}" target="_blank" rel="noopener"` : `href="#"`}>
          <i class="bi ${icone}"></i><span>${nome}</span></a>`;
-    return `<div class="grelha-partilha">
-      ${b("whatsapp", "#25d366", "bi-whatsapp", "WhatsApp", `https://wa.me/?text=${tu}`)}
+    return `<a class="btn btn-whats btn-lg w-100 mb-2 fw-bold" data-rede="whatsapp" href="https://wa.me/?text=${tu}" target="_blank" rel="noopener">
+        <i class="bi bi-whatsapp me-1"></i> Partilhar no WhatsApp</a>
+      <div class="grelha-partilha">
       ${b("facebook", "#1877f2", "bi-facebook", "Facebook", `https://www.facebook.com/sharer/sharer.php?u=${u}&quote=${t}`)}
       ${b("instagram", "#e1306c", "bi-instagram", "Instagram", "")}
       ${b("telegram", "#229ed9", "bi-telegram", "Telegram", `https://t.me/share/url?url=${u}&text=${t}`)}
@@ -216,8 +257,7 @@
     ${navigator.share ? `<button type="button" class="btn btn-outline-navy w-100 mt-2" data-rede="nativo"><i class="bi bi-share me-1"></i> Outras aplicações</button>` : ""}`;
   }
 
-  function ligarPartilha(raiz, texto) {
-    const url = URL_SITE();
+  function ligarPartilha(raiz, texto, url = URL_SITE()) {
     const copiar = async () => {
       try { await navigator.clipboard.writeText(texto + " " + url); return true; }
       catch { const ta = document.createElement("textarea"); ta.value = texto + " " + url; document.body.appendChild(ta); ta.select();
@@ -345,9 +385,10 @@
       ? `Tirei ${n} valores ${TIPOS[t.tipo].em} ${TIPOS[t.tipo].nome} da ${cfg.NOME_PLATAFORMA}! 📚 Treina também, de graça, para os concursos públicos (ENAPP, MININT e outros):`
       : `Estou a treinar para os concursos públicos (ENAPP, MININT e outros) na ${cfg.NOME_PLATAFORMA}. Testes cronometrados e grátis — treina também:`;
     const meu = perfil && t.user_id === perfil.id;
+    const link = meu ? linkConvite(perfil) : URL_SITE();
 
     const wrap = document.createElement("div");
-    wrap.innerHTML = `<div class="modal fade" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:18px;overflow:hidden">
+    wrap.innerHTML = `<div class="modal fade" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content" style="border-radius:18px;overflow:hidden">
       <div class="text-center p-4" style="background:${nivel.fundo};color:${nivel.cor}">
         <i class="bi ${nivel.icone}" style="font-size:3rem"></i>
         <h3 class="titulo upper mt-1 mb-1" style="color:${nivel.cor}">${nivel.titulo}</h3>
@@ -356,17 +397,26 @@
       </div>
       <div class="modal-body p-4">
         <p class="mb-3">${nivel.texto}</p>
+        <div data-pos-ranking></div>
         ${meu && (nota < 10 || t.anulado) ? `<button class="btn btn-whats w-100 mb-2" data-segunda><i class="bi bi-whatsapp me-1"></i> Solicitar 2.ª via do teste</button>` : ""}
         ${meu ? `<button class="btn btn-cyan w-100 mb-3" data-res><i class="bi bi-file-earmark-image me-1"></i> Partilhar o meu relatório com a nota</button>` : ""}
-        <h6 class="titulo upper mb-2"><i class="bi bi-share me-1"></i> Partilhe a plataforma com os amigos</h6>
-        ${botoesPartilha(texto)}
+        <h6 class="titulo upper mb-1"><i class="bi bi-share me-1"></i> Partilhe com os amigos</h6>
+        ${meu ? `<p class="small text-muted-2 mb-2"><i class="bi bi-gift text-danger me-1"></i>Com o seu link de convite: a cada <b>3 amigos</b> que façam um teste, ganha <b>uma nova tentativa</b> automática.</p>` : ""}
+        ${botoesPartilha(texto, link)}
       </div>
       <div class="modal-footer border-0 pt-0"><button class="btn btn-navy w-100" data-bs-dismiss="modal">Ver relatório completo</button></div>
     </div></div></div>`;
     const el = wrap.firstElementChild;
     document.body.appendChild(el);
     const m = new bootstrap.Modal(el);
-    ligarPartilha(el, texto);
+    ligarPartilha(el, texto, link);
+    if (!t.anulado) sb.rpc("ranking_semanal", { p_tipo: t.tipo, p_limite: 10 }).then(({ data }) => {
+      const eu = (data || []).find(r => r.meu);
+      const alvo = el.querySelector("[data-pos-ranking]");
+      if (!eu || !alvo) return;
+      alvo.innerHTML = `<a href="ranking.html?tipo=${t.tipo}" class="d-flex align-items-center gap-2 p-2 mb-3 rounded-3 text-decoration-none" style="background:#fff6d4;color:#0e2350">
+        <i class="bi bi-trophy-fill fs-4" style="color:#c99a00"></i><span>Está em <b>${eu.posicao}.º lugar</b> no ranking desta semana${eu.posicao <= 10 ? " — <b>Top 10!</b>" : ""}. Ver ranking ›</span></a>`;
+    });
     const bt = el.querySelector("[data-segunda]");
     if (bt) bt.addEventListener("click", () => { m.hide(); pedirSegundaVia({ perfil, tipo: t.tipo }); });
     const br = el.querySelector("[data-res]");
@@ -379,44 +429,50 @@
   //  Partilhar o relatório com a nota obtida (imagem + texto)
   // ------------------------------------------------------------------
   function imagemRelatorio({ t, perfil, categoria }) {
-    const W = 1080, H = 1350, c = document.createElement("canvas");
+    // formato vertical 1080 × 1920 — ideal para estados do WhatsApp e histórias
+    const W = 1080, H = 1920, c = document.createElement("canvas");
     c.width = W; c.height = H;
     const g = c.getContext("2d");
-    const NAVY = "#0e2350", CYAN = "#18b2e5", F = "Barlow, 'Segoe UI', Arial, sans-serif", FC = "'Barlow Condensed', 'Arial Narrow', Arial, sans-serif";
+    const NAVY = "#0e2350", CYAN = "#18b2e5", AMAR = "#f2c10f", F = "Barlow, 'Segoe UI', Arial, sans-serif", FC = "'Barlow Condensed', 'Arial Narrow', Arial, sans-serif";
     const nota = Number(t.nota), apto = nota >= 10 && !t.anulado;
+    const rr = (x, y, w, h, r) => { g.beginPath(); g.roundRect ? g.roundRect(x, y, w, h, r) : g.rect(x, y, w, h); };
     g.fillStyle = NAVY; g.fillRect(0, 0, W, H);
-    g.fillStyle = "#13306b"; g.beginPath(); g.arc(W - 60, 120, 330, 0, 7); g.fill();
-    // faixa vermelho / preto / amarelo
-    [["#c8102e", 0], ["#111111", 1], ["#f2c10f", 2]].forEach(([cor, k]) => { g.fillStyle = cor; g.fillRect(0, k * 12, W, 12); });
-    g.textAlign = "left"; g.fillStyle = CYAN; g.font = `700 44px ${FC}`; g.fillText((cfg.NOME_PLATAFORMA || "PrepConcurso AO").toUpperCase(), 80, 120);
-    g.fillStyle = "#c9d6ee"; g.font = `500 28px ${F}`; g.fillText("Relatório de exame · simulação", 80, 162);
-    // cartão branco
-    const x = 60, y = 220, w = W - 120, h = 900;
-    g.fillStyle = "#ffffff"; g.beginPath(); g.roundRect ? g.roundRect(x, y, w, h, 36) : g.rect(x, y, w, h); g.fill();
+    g.fillStyle = "#13306b"; g.beginPath(); g.arc(W - 40, 180, 420, 0, 7); g.fill();
+    g.fillStyle = "#112a5c"; g.beginPath(); g.arc(-60, 1500, 360, 0, 7); g.fill();
+    [["#c8102e", 0], ["#111111", 1], ["#f2c10f", 2]].forEach(([cor, k]) => { g.fillStyle = cor; g.fillRect(k * W / 3, 0, W / 3 + 1, 22); });
     g.textAlign = "center";
-    g.fillStyle = "#5d6b86"; g.font = `600 30px ${F}`; g.fillText(TIPOS[t.tipo].nome.toUpperCase(), W / 2, y + 80);
-    g.fillStyle = NAVY; g.font = `700 46px ${FC}`;
-    const nome = (perfil?.nome || "").length > 34 ? perfil.nome.slice(0, 33) + "…" : (perfil?.nome || "");
-    g.fillText(nome.toUpperCase(), W / 2, y + 145);
-    g.fillStyle = "#5d6b86"; g.font = `500 26px ${F}`; g.fillText(`${perfil?.codigo || ""}${categoria ? "  ·  " + categoria : ""}`.slice(0, 70), W / 2, y + 190);
-    // nota
-    g.fillStyle = apto ? "#1d6b2e" : "#b0102a"; g.font = `700 230px ${FC}`; g.fillText(fmtNota(t.nota), W / 2, y + 450);
-    g.fillStyle = "#5d6b86"; g.font = `600 36px ${F}`; g.fillText("valores (escala 0–20)", W / 2, y + 545);
+    g.fillStyle = CYAN; g.font = `700 54px ${FC}`; g.fillText((cfg.NOME_PLATAFORMA || "PrepConcurso AO").toUpperCase(), W / 2, 150);
+    g.fillStyle = "#fff"; g.font = `700 92px ${FC}`;
+    g.fillText(t.anulado ? "O MEU RESULTADO" : apto ? (nota >= 14 ? "CONSEGUI! 🎉" : "PASSEI! ✅") : "ESTOU A TREINAR 💪", W / 2, 270);
+    // cartão branco
+    const x = 70, y = 330, w = W - 140, h = 1010;
+    g.fillStyle = "#ffffff"; rr(x, y, w, h, 40); g.fill();
+    g.fillStyle = "#5d6b86"; g.font = `700 34px ${F}`; g.fillText(TIPOS[t.tipo].nome.toUpperCase(), W / 2, y + 90);
+    const nome = (perfil?.nome || "").length > 30 ? perfil.nome.slice(0, 29) + "…" : (perfil?.nome || "");
+    g.fillStyle = NAVY; g.font = `700 56px ${FC}`; g.fillText(nome.toUpperCase(), W / 2, y + 165);
+    if (categoria && t.tipo === "conhecimento") { g.fillStyle = "#5d6b86"; g.font = `500 30px ${F}`; g.fillText(categoria.slice(0, 48), W / 2, y + 215); }
+    g.fillStyle = apto ? "#1d6b2e" : "#b0102a"; g.font = `700 300px ${FC}`; g.fillText(fmtNota(t.nota), W / 2, y + 540);
+    g.fillStyle = "#5d6b86"; g.font = `600 40px ${F}`; g.fillText("valores (escala 0–20)", W / 2, y + 610);
     const sel = t.anulado ? "EXAME ANULADO" : t.tipo === "psico" ? (apto ? "APTO" : "NÃO APTO") : (apto ? "APROVADO" : "NÃO APROVADO");
-    g.font = `700 40px ${FC}`; const lw = g.measureText(sel).width + 80;
-    g.fillStyle = apto ? "#e6f6ea" : "#fde8eb"; g.beginPath(); g.roundRect ? g.roundRect(W / 2 - lw / 2, y + 580, lw, 70, 35) : g.rect(W / 2 - lw / 2, y + 580, lw, 70); g.fill();
-    g.fillStyle = apto ? "#1d6b2e" : "#b0102a"; g.fillText(sel, W / 2, y + 630);
-    // estatísticas
+    g.font = `700 48px ${FC}`; const lw = g.measureText(sel).width + 90;
+    g.fillStyle = apto ? "#e6f6ea" : "#fde8eb"; rr(W / 2 - lw / 2, y + 650, lw, 84, 42); g.fill();
+    g.fillStyle = apto ? "#1d6b2e" : "#b0102a"; g.fillText(sel, W / 2, y + 708);
     const est = [["Certas", `${t.acertos}/${t.n_questoes}`], ["Respondidas", `${t.respondidas}`], ["Tempo", fmtHMS(t.tempo_seg)]];
     est.forEach(([r, v], k) => {
       const cx = x + w / 6 + k * w / 3;
-      g.fillStyle = NAVY; g.font = `700 54px ${FC}`; g.fillText(v, cx, y + 745);
-      g.fillStyle = "#5d6b86"; g.font = `500 26px ${F}`; g.fillText(r, cx, y + 785);
+      g.fillStyle = NAVY; g.font = `700 66px ${FC}`; g.fillText(v, cx, y + 850);
+      g.fillStyle = "#5d6b86"; g.font = `500 30px ${F}`; g.fillText(r, cx, y + 895);
     });
-    g.fillStyle = "#8a96ad"; g.font = `500 24px ${F}`; g.fillText(`Submetido em ${fmtData(t.submetido_em)}`, W / 2, y + 860);
-    // rodapé
-    g.fillStyle = "#ffffff"; g.font = `700 40px ${FC}`; g.fillText("TREINE TAMBÉM, É GRÁTIS:", W / 2, 1200);
-    g.fillStyle = CYAN; g.font = `700 46px ${F}`; g.fillText(URL_SITE().replace(/^https?:\/\//, "").replace(/\/$/, ""), W / 2, 1262);
+    g.fillStyle = "#8a96ad"; g.font = `500 28px ${F}`; g.fillText(fmtData(t.submetido_em), W / 2, y + 965);
+    // convite
+    g.fillStyle = "#fff"; g.font = `700 58px ${FC}`; g.fillText("TREINA TAMBÉM, É GRÁTIS 👇", W / 2, 1450);
+    g.fillStyle = AMAR; rr(110, 1490, W - 220, 120, 26); g.fill();
+    g.fillStyle = NAVY; g.font = `700 56px ${FC}`; g.fillText(URL_SITE().replace(/^https?:\/\//, "").replace(/\/$/, ""), W / 2, 1570);
+    if (perfil?.codigo) {
+      g.fillStyle = "#c9d6ee"; g.font = `600 34px ${F}`; g.fillText("Usa o meu código de convite:", W / 2, 1690);
+      g.fillStyle = "#fff"; g.font = `700 60px ${FC}`; g.fillText(perfil.codigo, W / 2, 1765);
+    }
+    g.fillStyle = "#8fa3c8"; g.font = `500 28px ${F}`; g.fillText("Psicotécnico · Conhecimentos · Prova escrita MININT", W / 2, 1860);
     return c;
   }
 
@@ -429,6 +485,7 @@
     const urlImg = URL.createObjectURL(blob);
     const sel = t.anulado ? "exame anulado" : Number(t.nota) >= 10 ? (t.tipo === "psico" ? "APTO" : "APROVADO") : "a melhorar";
     const texto = `📊 O meu resultado ${TIPOS[t.tipo].em} ${TIPOS[t.tipo].nome} da ${cfg.NOME_PLATAFORMA}: ${fmtNota(t.nota)} valores (${t.acertos}/${t.n_questoes} certas · ${sel}). Treina também, de graça, para os concursos públicos (ENAPP, MININT e outros):`;
+    const link = linkConvite(perfil);
     const podeFich = !!(navigator.canShare && navigator.canShare({ files: [ficheiro] }));
 
     const wrap = document.createElement("div");
@@ -436,21 +493,22 @@
       <div class="modal-header border-0 pb-0"><h5 class="modal-title titulo"><i class="bi bi-share me-1"></i> Partilhar o meu relatório</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
-        <img src="${urlImg}" alt="Resultado: ${fmtNota(t.nota)} valores" class="img-fluid rounded-3 border mb-3 d-block mx-auto" style="max-height:340px">
+        <img src="${urlImg}" alt="Resultado: ${fmtNota(t.nota)} valores" class="img-fluid rounded-3 border mb-2 d-block mx-auto" style="max-height:380px">
+        <p class="small text-center text-muted-2 mb-3"><i class="bi bi-phone me-1"></i>Formato vertical, ideal para o <b>estado do WhatsApp</b>.</p>
         <div class="d-grid gap-2 mb-3">
-          ${podeFich ? `<button class="btn btn-cyan" data-img-partilhar><i class="bi bi-image me-1"></i> Partilhar imagem do resultado</button>` : ""}
+          ${podeFich ? `<button class="btn btn-whats btn-lg fw-bold" data-img-partilhar><i class="bi bi-whatsapp me-1"></i> Pôr no estado do WhatsApp</button>` : ""}
           <a class="btn btn-outline-navy" href="${urlImg}" download="${nomeFich}"><i class="bi bi-download me-1"></i> Descarregar imagem</a>
         </div>
-        <p class="small text-muted-2 mb-2">Ou partilhe o texto com a sua nota (no Instagram, publique a imagem descarregada):</p>
-        ${botoesPartilha(texto)}
+        <p class="small text-muted-2 mb-2">${podeFich ? "Escolha <b>WhatsApp → O meu estado</b>. " : "No computador: descarregue a imagem e publique-a no estado a partir do telemóvel. "}Ou partilhe o texto com a nota e o seu link de convite:</p>
+        ${botoesPartilha(texto, link)}
       </div></div></div></div>`;
     const el = wrap.firstElementChild;
     document.body.appendChild(el);
     const m = new bootstrap.Modal(el);
-    ligarPartilha(el, texto);
+    ligarPartilha(el, texto, link);
     const bi = el.querySelector("[data-img-partilhar]");
     if (bi) bi.addEventListener("click", async () => {
-      try { await navigator.share({ files: [ficheiro], title: cfg.NOME_PLATAFORMA, text: texto + " " + URL_SITE() }); } catch {}
+      try { await navigator.share({ files: [ficheiro], title: cfg.NOME_PLATAFORMA, text: texto + " " + link }); } catch {}
     });
     el.addEventListener("hidden.bs.modal", () => { el.remove(); URL.revokeObjectURL(urlImg); });
     m.show();
@@ -500,6 +558,7 @@
     sb, cfg, configurado, TIPOS, AREAS_PSICO, LOGO,
     esc, loginParaEmail, fmtHMS, fmtData, fmtNota, erroMsg, toast, confirmar,
     perfilAtual, exigirSessao, sair, renderTopo, renderRodape, renderAvisoConfig,
-    normalizarWhats, fmtWhats, linkWhatsAppApoio, perfilIncompleto, completarPerfil, botoesPartilha, ligarPartilha, pedirSegundaVia, mostrarResultado, partilharRelatorio, AVISO_WHATS
+    normalizarWhats, fmtWhats, linkWhatsAppApoio, perfilIncompleto, completarPerfil, botoesPartilha, ligarPartilha, pedirSegundaVia, mostrarResultado, partilharRelatorio, AVISO_WHATS,
+    linkConvite, aplicarConvite, refGuardado, tabelaRanking
   };
 })();
