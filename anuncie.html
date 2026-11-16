@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Anuncie connosco — PrepConcurso AO</title>
+  <meta name="description" content="Planos e pacotes de publicidade na PrepConcurso AO: o seu anúncio visto por candidatos a concursos públicos em Angola.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/estilo.css?v=11" rel="stylesheet">
+  <style>
+    .anu-heroi{background:linear-gradient(135deg,var(--navy,#0e2350) 0%,#173a7a 100%);color:#fff;position:relative;overflow:hidden}
+    .anu-heroi::before{content:"";position:absolute;left:0;right:0;top:0;height:6px;background:linear-gradient(90deg,#c8102e 0 33.3%,#111 33.3% 66.6%,#f2c10f 66.6%)}
+    .anu-heroi h1{color:#fff;text-transform:uppercase;font-size:clamp(2rem,5vw,3.2rem);line-height:1}
+    .anu-heroi h1 span{color:#f2c10f}
+    .anu-heroi p.lead{color:#d5def0}
+    .anu-onde{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:1rem 1.1rem;color:#e7eefb;height:100%}
+    .anu-onde i{font-size:1.6rem;color:#18b2e5}
+    .anu-onde b{display:block;color:#fff;margin:.3rem 0 .15rem}
+    .plano{border-radius:18px;border:2px solid #e3e9f3;background:#fff;padding:1.6rem 1.4rem;height:100%;display:flex;flex-direction:column;position:relative;transition:transform .15s,box-shadow .15s}
+    .plano:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(14,35,80,.12)}
+    .plano.destaque{border-color:#f2c10f;box-shadow:0 14px 34px rgba(242,193,15,.25)}
+    .plano .fita{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:#c8102e;color:#fff;font-weight:700;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;padding:.25rem .8rem;border-radius:99px;white-space:nowrap}
+    .plano .icone{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;font-size:1.5rem;background:#eaf6fc;color:#0f6f99;margin-bottom:.7rem}
+    .plano.destaque .icone{background:#fff6d4;color:#9a7300}
+    .plano h3{font-size:1.5rem;text-transform:uppercase;margin-bottom:.1rem;color:#0e2350}
+    .plano .publico{font-size:.88rem;color:#5d6b86;min-height:2.6em}
+    .plano .preco{font:700 2.4rem/1 'Barlow Condensed',sans-serif;color:#0e2350;margin:.8rem 0 .1rem}
+    .plano .preco small{font-size:1rem;font-weight:600;color:#5d6b86}
+    .plano .periodo{font-size:.85rem;color:#5d6b86;margin-bottom:1rem}
+    .plano ul{list-style:none;padding:0;margin:0 0 1.3rem;flex-grow:1}
+    .plano li{display:flex;gap:.5rem;padding:.32rem 0;font-size:.93rem;color:#2a3754;border-bottom:1px dashed #edf1f7}
+    .plano li:last-child{border-bottom:0}
+    .plano li i{color:#1d8a3a;flex-shrink:0;margin-top:.1rem}
+    .plano li.nao{color:#9aa5b8}
+    .plano li.nao i{color:#c3cad6}
+    .tabela-desc td,.tabela-desc th{padding:.6rem .8rem}
+    .passo-anu{display:flex;gap:.9rem;align-items:flex-start}
+    .passo-anu .n{width:38px;height:38px;flex:0 0 38px;border-radius:50%;background:#0e2350;color:#f2c10f;display:grid;place-items:center;font:700 1.2rem 'Barlow Condensed',sans-serif}
+    .extra{border:1px solid #e3e9f3;border-radius:12px;padding:.85rem 1rem;background:#fff;display:flex;justify-content:space-between;gap:1rem;align-items:center;height:100%}
+    .extra b{color:#0e2350}
+    .extra .v{font:700 1.25rem 'Barlow Condensed',sans-serif;color:#0e2350;white-space:nowrap}
+    .regras li{margin-bottom:.35rem}
+    .selo-periodo .btn{min-width:96px}
+    @media print{.nao-imprimir{display:none!important}}
+  </style>
+</head>
+<body>
+  <header id="topo"></header>
+
+  <main>
+    <!-- HERÓI -->
+    <section class="anu-heroi py-5">
+      <div class="container py-lg-3">
+        <div class="row g-4 align-items-center">
+          <div class="col-lg-6">
+            <span class="etiqueta mb-2">Publicidade</span>
+            <h1 class="mb-3">Anuncie para quem está a <span>preparar o futuro</span></h1>
+            <p class="lead mb-4">A PrepConcurso AO é usada por candidatos a concursos públicos (ENAPP, MININT, Saúde, Educação e outros) para treinar testes psicotécnicos e de conhecimentos. Coloque o seu negócio à frente deles.</p>
+            <div class="d-flex flex-wrap gap-2 nao-imprimir">
+              <a href="#planos" class="btn btn-amarelo"><i class="bi bi-tags me-1"></i> Ver planos e preços</a>
+              <a id="btnWhatsTopo" class="btn btn-whats" target="_blank" rel="noopener"><i class="bi bi-whatsapp me-1"></i> Falar por WhatsApp</a>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="row g-3">
+              <div class="col-6"><div class="anu-onde"><i class="bi bi-door-open"></i><b>Página de entrada</b>Banner no topo do ecrã de login e cadastro.</div></div>
+              <div class="col-6"><div class="anu-onde"><i class="bi bi-person-badge"></i><b>Painel do candidato</b>Banner no topo do painel, visto antes de cada teste.</div></div>
+              <div class="col-6"><div class="anu-onde"><i class="bi bi-facebook"></i><b>Grupos de concursos</b>Menções nas nossas publicações no Facebook (planos Destaque e Patrocinador).</div></div>
+              <div class="col-6"><div class="anu-onde"><i class="bi bi-bullseye"></i><b>Público certo</b>Jovens e adultos à procura de emprego e formação.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUEM DEVE ANUNCIAR -->
+    <section class="container pt-5">
+      <h2 class="text-center mb-1">Ideal para</h2>
+      <p class="text-center text-muted-2 mb-4">Negócios que servem candidatos e estudantes.</p>
+      <div class="d-flex flex-wrap justify-content-center gap-2" id="ideal"></div>
+    </section>
+
+    <!-- PLANOS -->
+    <section class="container py-5" id="planos">
+      <h2 class="text-center mb-1">Planos e pacotes</h2>
+      <p class="text-center text-muted-2 mb-3">Preços em kwanzas, por período. Escolha a duração para ver o desconto.</p>
+      <div class="d-flex justify-content-center mb-4 nao-imprimir">
+        <div class="d-flex flex-wrap justify-content-center gap-2 selo-periodo" role="group" aria-label="Duração" id="periodos"></div>
+      </div>
+      <div class="row g-4 pt-2" id="listaPlanos"></div>
+      <p class="text-center small text-muted-2 mt-3 mb-0">Preços sem IVA. Pagamento adiantado. Os valores podem ser revistos; vale o preço confirmado por escrito no momento da contratação.</p>
+    </section>
+
+    <!-- COMPARAÇÃO -->
+    <section class="container pb-5">
+      <div class="cartao p-3 p-md-4">
+        <h3 class="mb-3"><i class="bi bi-table me-1 text-cyan"></i> Comparação rápida</h3>
+        <div class="table-responsive">
+          <table class="table align-middle mb-0 tabela-desc" id="tabelaComp"></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXTRAS -->
+    <section class="container pb-5">
+      <h2 class="mb-1">Serviços extra</h2>
+      <p class="text-muted-2 mb-4">Pode juntar a qualquer plano.</p>
+      <div class="row g-3" id="listaExtras"></div>
+    </section>
+
+    <!-- COMO CONTRATAR -->
+    <section class="container pb-5">
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <div class="cartao p-4 h-100">
+            <h3 class="mb-3"><i class="bi bi-list-check me-1 text-cyan"></i> Como contratar</h3>
+            <div class="passo-anu mb-3"><div class="n">1</div><div><b>Escolha o plano</b><br><span class="text-muted-2">Clique em «Quero este plano»: abre o WhatsApp com a mensagem pronta.</span></div></div>
+            <div class="passo-anu mb-3"><div class="n">2</div><div><b>Envie o material</b><br><span class="text-muted-2">Imagem do anúncio (ou texto e logótipo, se quiser que criemos o design) e o link de destino.</span></div></div>
+            <div class="passo-anu mb-3"><div class="n">3</div><div><b>Faça o pagamento</b><br><span class="text-muted-2">Transferência bancária ou Multicaixa Express. Enviamos os dados por WhatsApp.</span></div></div>
+            <div class="passo-anu"><div class="n">4</div><div><b>Anúncio no ar</b><br><span class="text-muted-2">Até 24 horas depois de recebermos o pagamento e o material aprovado. Enviamos a captura do anúncio publicado.</span></div></div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="cartao p-4 h-100">
+            <h3 class="mb-3"><i class="bi bi-rulers me-1 text-cyan"></i> Especificações e regras</h3>
+            <ul class="regras small mb-0">
+              <li><b>Imagem:</b> formato horizontal, <b>1500 × 300 px</b> (proporção 5:1), JPG ou PNG, até 3 MB. Texto grande e legível no telemóvel.</li>
+              <li><b>Anúncio só com texto:</b> título (até 60 caracteres) + frase (até 140) + link.</li>
+              <li><b>Link:</b> WhatsApp, página de Facebook/Instagram ou site do anunciante.</li>
+              <li><b>Rotação:</b> o banner mostra um anúncio de cada vez, a cada 6 segundos; o plano define a posição na rotação.</li>
+              <li><b>Alterações:</b> pode trocar a imagem 1 vez por período (Presença) ou sem limite (Destaque e Patrocinador).</li>
+              <li><b>Não aceitamos:</b> promessas de «vaga garantida» ou venda de provas, conteúdo enganoso, apostas, conteúdo político-partidário, adulto ou ilegal.</li>
+              <li>A PrepConcurso AO pode recusar ou retirar anúncios que não cumpram estas regras; o anunciante é responsável pelo conteúdo e pelos produtos anunciados.</li>
+              <li>Os anunciantes <b>não</b> têm acesso aos dados dos candidatos (ver <a href="termos.html#publicidade">Termos</a>).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="container pb-5">
+      <div class="banner-minint">
+        <div class="bm-icone"><i class="bi bi-megaphone-fill"></i></div>
+        <div class="flex-grow-1"><span class="bm-novo">Vagas limitadas</span>
+          <h3 class="mb-1">Garanta o seu espaço no banner</h3>
+          <p class="mb-0">Fale connosco: <span id="ctaContactos"></span></p></div>
+        <a id="btnWhatsFim" class="btn btn-amarelo flex-shrink-0" target="_blank" rel="noopener"><i class="bi bi-whatsapp me-1"></i> Pedir proposta</a>
+      </div>
+    </section>
+  </main>
+
+  <footer id="rodape"></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js?v=11"></script>
+  <script src="js/app.js?v=11"></script>
+  <script>
+  // =====================================================================
+  //  Planos de publicidade — para mudar preços ou benefícios, edite só
+  //  os objetos PLANOS, PERIODOS e EXTRAS abaixo.
+  // =====================================================================
+  const PLANOS = [
+    { id: "experimente", nome: "Experimente", icone: "bi-lightning-charge", publico: "Para testar o canal com pouco investimento.",
+      precoSemana: 7500, unidade: "semana", soSemanal: true,
+      inclui: ["Banner rotativo na página de entrada e no painel", "Anúncio com imagem ou só texto", "Link para WhatsApp, Facebook ou site", "7 dias no ar"],
+      nao: ["Posição fixa na rotação", "Menções no Facebook"] },
+    { id: "presenca", nome: "Presença", icone: "bi-broadcast", publico: "Visibilidade contínua para pequenos negócios.",
+      precoMes: 25000,
+      inclui: ["Banner rotativo na página de entrada e no painel", "Anúncio com imagem ou só texto", "Link para WhatsApp, Facebook ou site", "1 troca de imagem por mês", "Captura do anúncio publicado"],
+      nao: ["Posição fixa na rotação", "Menções no Facebook"] },
+    { id: "destaque", nome: "Destaque", icone: "bi-star-fill", publico: "Para escolas e centros de formação que querem ser vistos primeiro.", destaque: true, fita: "Mais escolhido",
+      precoMes: 45000,
+      inclui: ["Tudo do plano Presença", "1.º lugar na rotação do banner", "Design do banner incluído", "Trocas de imagem sem limite", "2 menções por mês nas nossas publicações nos grupos de concursos no Facebook"],
+      nao: ["Exclusividade no seu ramo"] },
+    { id: "patrocinador", nome: "Patrocinador oficial", icone: "bi-award-fill", publico: "Associação forte da sua marca à preparação para concursos.", fita: "Exclusivo",
+      precoMes: 90000,
+      inclui: ["Tudo do plano Destaque", "Exclusividade no seu ramo (ex.: único centro de formação)", "Logótipo «Patrocinador oficial» nos cartazes de divulgação da plataforma", "4 menções por mês nas publicações no Facebook", "Publicação de apresentação dedicada à sua marca"],
+      nao: [] }
+  ];
+  const PERIODOS = [
+    { meses: 1, rotulo: "1 mês", desconto: 0 },
+    { meses: 3, rotulo: "3 meses", desconto: 10 },
+    { meses: 6, rotulo: "6 meses", desconto: 15 },
+    { meses: 12, rotulo: "12 meses", desconto: 25 }
+  ];
+  const EXTRAS = [
+    { nome: "Design do banner", desc: "Criamos a imagem do anúncio a partir do seu logótipo e texto.", preco: 5000 },
+    { nome: "Menção extra no Facebook", desc: "Publicação nos grupos de concursos a falar do seu negócio.", preco: 3500 },
+    { nome: "Troca extra de imagem", desc: "Para quem está no plano Presença e quer mudar mais vezes.", preco: 2000 },
+    { nome: "Campanha de datas especiais", desc: "Banner temático (abertura de concursos, início de formações).", preco: 10000 }
+  ];
+  const IDEAL = ["Centros de formação", "Explicações e preparatórios", "Escolas e institutos", "Papelarias e reprografias", "Lojas de informática", "Fotógrafos (fotos tipo passe)", "Serviços de documentação", "Transportes e cafés perto dos locais de prova"];
+
+  (() => {
+    const { cfg, esc } = App;
+    App.renderTopo(null); App.renderRodape();
+    const kz = v => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " Kz";
+    const telDig = String(cfg.TELEFONE_APOIO || "").replace(/\D/g, "");
+    const wa = txt => `https://wa.me/${cfg.WHATSAPP_INDICATIVO || "244"}${telDig}?text=${encodeURIComponent(txt)}`;
+    const msgBase = `Olá! Quero anunciar na plataforma ${cfg.NOME_PLATAFORMA}.`;
+    document.getElementById("btnWhatsTopo").href = wa(msgBase);
+    document.getElementById("btnWhatsFim").href = wa(msgBase + " Podem enviar-me uma proposta?");
+    document.getElementById("ctaContactos").innerHTML =
+      `WhatsApp / telefone <b>${esc(cfg.TELEFONE_APOIO)}</b> · e-mail <a class="text-white" href="mailto:${esc(cfg.CONTACTO_SUPORTE)}"><b>${esc(cfg.CONTACTO_SUPORTE)}</b></a>`;
+    document.getElementById("ideal").innerHTML = IDEAL.map(t => `<span class="chip chip-info px-3 py-2">${esc(t)}</span>`).join("");
+
+    let periodo = PERIODOS[0];
+    try { const g = +localStorage.getItem("anuPeriodo"); const p = PERIODOS.find(x => x.meses === g); if (p) periodo = p; } catch {}
+
+    function precoDe(p) {
+      if (p.soSemanal) return { total: p.precoSemana, texto: `${kz(p.precoSemana)}`, sub: "por semana (7 dias)" };
+      const total = p.precoMes * periodo.meses * (1 - periodo.desconto / 100);
+      const mensal = total / periodo.meses;
+      return {
+        total,
+        texto: kz(mensal) + `<small>/mês</small>`,
+        sub: periodo.meses === 1 ? "pagamento mensal" : `${kz(total)} por ${periodo.rotulo} · poupa ${periodo.desconto}%`
+      };
+    }
+
+    function render() {
+      document.getElementById("periodos").innerHTML = PERIODOS.map(p =>
+        `<button type="button" class="btn ${p === periodo ? "btn-navy" : "btn-outline-navy"}" data-m="${p.meses}">${p.rotulo}${p.desconto ? ` <span class="badge text-bg-warning ms-1">-${p.desconto}%</span>` : ""}</button>`).join("");
+      document.querySelectorAll("#periodos [data-m]").forEach(b => b.onclick = () => {
+        periodo = PERIODOS.find(x => x.meses === +b.dataset.m);
+        try { localStorage.setItem("anuPeriodo", periodo.meses); } catch {}
+        render();
+      });
+
+      document.getElementById("listaPlanos").innerHTML = PLANOS.map(p => {
+        const pr = precoDe(p);
+        const dur = p.soSemanal ? "1 semana" : periodo.rotulo;
+        const msg = `${msgBase}\nPlano: *${p.nome}* (${dur}) — ${kz(pr.total)}.\nNome do negócio: \nRamo: `;
+        return `<div class="col-md-6 col-xl-3"><div class="plano ${p.destaque ? "destaque" : ""}">
+          ${p.fita ? `<span class="fita">${esc(p.fita)}</span>` : ""}
+          <div class="icone"><i class="bi ${p.icone}"></i></div>
+          <h3>${esc(p.nome)}</h3>
+          <div class="publico">${esc(p.publico)}</div>
+          <div class="preco">${pr.texto}</div>
+          <div class="periodo">${pr.sub}</div>
+          <ul>${p.inclui.map(i => `<li><i class="bi bi-check-circle-fill"></i><span>${esc(i)}</span></li>`).join("")}
+              ${p.nao.map(i => `<li class="nao"><i class="bi bi-dash-circle"></i><span>${esc(i)}</span></li>`).join("")}</ul>
+          <a class="btn ${p.destaque ? "btn-amarelo" : "btn-navy"} w-100 nao-imprimir" target="_blank" rel="noopener" href="${wa(msg)}"><i class="bi bi-whatsapp me-1"></i> Quero este plano</a>
+        </div></div>`;
+      }).join("");
+
+      // tabela de comparação
+      const linhas = [
+        ["Banner na página de entrada e no painel", [1, 1, 1, 1]],
+        ["Duração mínima", ["7 dias", "1 mês", "1 mês", "1 mês"]],
+        ["Posição na rotação", ["normal", "normal", "1.º lugar", "1.º lugar"]],
+        ["Trocas de imagem", ["—", "1/mês", "sem limite", "sem limite"]],
+        ["Design do banner", [0, 0, 1, 1]],
+        ["Menções no Facebook (por mês)", ["—", "—", "2", "4"]],
+        ["Exclusividade no ramo", [0, 0, 0, 1]],
+        ["Logótipo nos cartazes da plataforma", [0, 0, 0, 1]]
+      ];
+      const cel = v => v === 1 ? `<i class="bi bi-check-circle-fill text-success"></i>` : v === 0 ? `<i class="bi bi-dash text-muted"></i>` : esc(String(v));
+      document.getElementById("tabelaComp").innerHTML =
+        `<thead><tr><th></th>${PLANOS.map(p => `<th class="text-center">${esc(p.nome)}</th>`).join("")}</tr></thead><tbody>` +
+        linhas.map(([n, vs]) => `<tr><td>${esc(n)}</td>${vs.map(v => `<td class="text-center">${cel(v)}</td>`).join("")}</tr>`).join("") +
+        `<tr class="fw-bold"><td>Preço (${periodo.rotulo})</td>${PLANOS.map(p => `<td class="text-center">${p.soSemanal ? kz(p.precoSemana) + "/sem." : kz(precoDe(p).total)}</td>`).join("")}</tr></tbody>`;
+    }
+    render();
+
+    document.getElementById("listaExtras").innerHTML = EXTRAS.map(e =>
+      `<div class="col-md-6"><div class="extra"><div><b>${esc(e.nome)}</b><div class="small text-muted-2">${esc(e.desc)}</div></div><div class="v">${kz(e.preco)}</div></div></div>`).join("");
+  })();
+  </script>
+</body>
+</html>

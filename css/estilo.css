@@ -278,3 +278,4 @@ body.bloqueado main, body.bloqueado .barra-exame .container > div:first-child { 
 .termos h3 { font-size: 1.3rem; margin-top: 1.6rem; color: #0e2350; scroll-margin-top: 80px; }
 .termos li { margin-bottom: .3rem; }
 .termos .indice a { text-decoration: none; }
+.pub-btn.pub-btn-planos { background: #f2c10f; color: #0e2350; border-color: #f2c10f; font-weight: 700; }

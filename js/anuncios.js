@@ -23,6 +23,7 @@
 
     const contactos = `
       <div class="pub-contactos">
+        <a class="pub-btn pub-btn-planos" href="anuncie.html"><i class="bi bi-tags"></i> Planos e preços</a>
         <a class="pub-btn pub-btn-wa" href="${wa}" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> ${esc(tel)}</a>
         <a class="pub-btn" href="tel:+${cfg.WHATSAPP_INDICATIVO || "244"}${telDigitos}"><i class="bi bi-telephone"></i> Ligar</a>
         <a class="pub-btn" href="${mail}"><i class="bi bi-envelope"></i> ${esc(cfg.CONTACTO_SUPORTE)}</a>
